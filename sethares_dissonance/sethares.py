@@ -64,8 +64,9 @@ if __name__ == '__main__':
 
     # call function dissmeasure for each interval
     interval_count = 1000
-    dissonances = np.array([0])
-    for alpha in np.linspace(1, alpharange, interval_count):
+    dissonances = np.array([])
+    alphas = np.linspace(1, alpharange, interval_count)
+    for alpha in alphas:
         # generate intervals by fixing one tone and varying the other
         other_freqs = alpha * freqs
         other_amps = amps
@@ -75,7 +76,7 @@ if __name__ == '__main__':
         d = dissmeasure(all_freqs, all_amps, method)
         dissonances = np.append(dissonances, d)
 
-    plt.plot(np.linspace(1, alpharange, len(dissonances)), dissonances)
+    plt.plot(alphas, dissonances)
     plt.xscale('log')
     plt.xlim(1, alpharange)
  
