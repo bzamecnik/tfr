@@ -30,15 +30,31 @@ def save_wav(samples, filename, fs=44100, normalize=False, factor=((2**15))-1):
 def play(filename):
     subprocess.call(['afplay', filename])
 
-def generate_and_play(func, duration=1.):
-    filename = 'test.wav'
+def generate_and_play(func, filename='test.wav', duration=1.,
+    normalize=True, fade_ends=True, fade_length=100):
     t = sample_time(0, duration)
     samples = func(t)
-    save_wav(samples, filename, normalize=True)
+    if fade_ends:
+        samples = fade(samples, fade_length)
+    save_wav(samples, filename, normalize=normalize)
     play(filename)
 
 def amplitude_envelope(x):
     return abs(hilbert(x))
+
+def quadratic_fade_in(length):
+    '''Quadratic fade-in window [0; 1] of given length.'''
+    return 1 - (np.linspace(-1, 0, length) ** 2)
+
+def fade(samples, n, fade_in=True, fade_out=True):
+    x = np.copy(samples)
+    in_window = quadratic_fade_in(n)
+    if fade_in:
+        x[:n] = in_window * x[:n]
+    if fade_out:
+        out_window = in_window[::-1]
+        x[-n:] = out_window * x[-n:]
+    return x
 
 if __name__ == '__main__':
 
