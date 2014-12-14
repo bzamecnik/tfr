@@ -48,6 +48,8 @@ def dissmeasure(fvec, amp, model='min'):
  
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
+
+    # Some parameters from literature:
  
     # Similar to Figure 3
     # http://sethares.engr.wisc.edu/consemi.html#anchor15619672
@@ -62,19 +64,17 @@ if __name__ == '__main__':
     # alpharange = 2.0
     # method = 'product'
 
-    # call function dissmeasure for each interval
+    # Evaluate the dissonance function for each interval.
+    # Generate intervals by fixing one tone and varying the other.
     interval_count = 1000
-    dissonances = np.array([])
+    dissonances = np.zeros(interval_count)
     alphas = np.linspace(1, alpharange, interval_count)
-    for alpha in alphas:
-        # generate intervals by fixing one tone and varying the other
+    all_amps = np.hstack([amps, amps])
+    for i, alpha in enumerate(alphas):
         other_freqs = alpha * freqs
-        other_amps = amps
         # concat frequencies from both tones in the interval
         all_freqs = np.hstack([freqs, other_freqs])
-        all_amps = np.hstack([amps, amps])
-        d = dissmeasure(all_freqs, all_amps, method)
-        dissonances = np.append(dissonances, d)
+        dissonances[i] = dissmeasure(all_freqs, all_amps, method)
 
     plt.plot(alphas, dissonances)
     plt.xscale('log')
@@ -82,12 +82,16 @@ if __name__ == '__main__':
  
     plt.xlabel('frequency ratio')
     plt.ylabel('dissonance')
- 
+
+    # annotate the simple ratios (just intervals in 12-TET)
+    # with vertical lines and labels 
     for n, d in [(2,1), (3,2), (5,3), (4,3), (5,4), (6,5)]:
-        plt.axvline(n/d, color='silver')
-        plt.annotate(str(n) + ':' + str(d),
-                     (n/d, max(dissonances)*2/3),
-                     horizontalalignment='center')
+        x = n / d
+        # position the label to some free space
+        y = max(dissonances) * 2 / 3
+        plt.axvline(x, color='silver')
+        plt.annotate('%d:%d' % (n, d), (x, y),
+                horizontalalignment='center')
  
     plt.show()
     # plt.savefig('plot.png')
