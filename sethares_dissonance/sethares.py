@@ -1,9 +1,9 @@
 from __future__ import division
 import numpy as np
 
-def dissonance(fvec, amp, model='min'):
+def dissonance(freqs, amps, model='min'):
     """
-    Given a list of partials in fvec, with amplitudes in amp, this routine
+    Given a list of partials in freqs, with amplitudes in amp, this routine
     calculates the dissonance by summing the roughness of every sine pair
     based on a model of Plomp-Levelt's roughness curve.
 
@@ -11,8 +11,17 @@ def dissonance(fvec, amp, model='min'):
     amplitudes, but the newer model (model='min') is based on the minimum
     of the two amplitudes, since this matches the beat frequency amplitude.
     """
-    fvec = np.copy(fvec)
-    amp = np.copy(amp)
+    
+    if model == 'min':
+        reduce_amplitudes = np.minimum
+    elif model == 'product':
+        # Older model
+        reduce_amplitudes = lambda x, y: x * y
+    else:
+        raise ValueError('model should be "min" or "product"')
+    
+    freqs = np.copy(freqs)
+    amps = np.copy(amps)
 
     # used to stretch dissonance curve for different freqs:
     Dstar = 0.24  # point of maximum dissonance
@@ -26,24 +35,22 @@ def dissonance(fvec, amp, model='min'):
     A1 = -3.51
     A2 = -5.75
 
-    ams = amp[np.argsort(fvec)]
-    fvec = np.sort(fvec)
+    sorted_freq_indices = np.argsort(freqs)
+    amps = amps[sorted_freq_indices]
+    freqs = freqs[sorted_freq_indices]
 
-    D = 0
-    for i in range(1, len(fvec)):
-        Fmin = fvec[:-i]
+    dissonance = 0
+    for i in range(1, len(freqs)):
+        Fmin = freqs[:-i]
         S = Dstar / (S1 * Fmin + S2)
-        Fdif = fvec[i:] - fvec[:-i]
-        if model == 'min':
-            a = np.minimum(ams[:-i], ams[i:])
-        elif model == 'product':
-            a = ams[i:] * ams[:-i] # Older model
-        else:
-            raise ValueError('model should be "min" or "product"')
-        Dnew = a * (C1 * np.exp(A1 * S * Fdif) + C2 * np.exp(A2 * S * Fdif))
-        D += np.sum(Dnew)
+        freqs_diff = freqs[i:] - freqs[:-i]
+        a = reduce_amplitudes(amps[:-i], amps[i:])
+        partial_dissonance = np.sum(
+            a * (C1 * np.exp(A1 * S * freqs_diff) +
+                 C2 * np.exp(A2 * S * freqs_diff)))
+        dissonance += partial_dissonance
 
-    return D
+    return dissonance
 
 def sethares_params():
     # Similar to Figure 3
@@ -100,7 +107,9 @@ def plot_dissonance_curve(dissonances, alphas):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
-    dissonances, alphas = evaluate(*sethares_params())
+    params = sethares_params()
+    # params = verotta_params()
+    dissonances, alphas = evaluate(*params)
 
     plot_dissonance_curve(dissonances, alphas)
     plt.show()    
