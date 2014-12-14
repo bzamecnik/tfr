@@ -61,3 +61,12 @@ if __name__ == '__main__':
     # C major chord
     generate_and_play(lambda t:
         np.sum(sine(t, pitch_to_freq(i)) for i in (0, 4, 7)))
+
+    # chirp signal - non-constant frequency
+    
+    # linear chirp
+    generate_and_play(lambda t: chirp(t, 440, 1, 880))
+    
+    # constant 440 + raising ramp from 430 to 450
+    generate_and_play(lambda t: sine(t, 440) + chirp(t, 440-10, 4, 440+10), duration=4)
+    
