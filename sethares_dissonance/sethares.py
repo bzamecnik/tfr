@@ -11,8 +11,8 @@ def dissmeasure(fvec, amp, model='min'):
     amplitudes, but the newer model (model='min') is based on the minimum
     of the two amplitudes, since this matches the beat frequency amplitude.
     """
-    fvec = np.asarray(fvec)
-    amp = np.asarray(amp)
+    fvec = np.copy(fvec)
+    amp = np.copy(amp)
  
     # used to stretch dissonance curve for different freqs:
     Dstar = 0.24  # point of maximum dissonance
@@ -51,26 +51,31 @@ if __name__ == '__main__':
  
     # Similar to Figure 3
     # http://sethares.engr.wisc.edu/consemi.html#anchor15619672
-    freq = 500 * np.array([1, 2, 3, 4, 5, 6])
-    amp = 0.88 ** np.array([0, 1, 2, 3, 4, 5])
+    freqs = 500 * np.array([1, 2, 3, 4, 5, 6])
+    amps = 0.88 ** np.array([0, 1, 2, 3, 4, 5])
     alpharange = 2.3
     method = 'min'
  
 #    # Davide Verotta Figure 4 example
-    # freq = 261.63 * np.array([1, 2, 3, 4, 5, 6])
-    # amp = 1 / np.array([1, 2, 3, 4, 5, 6])
+    # freqs = 261.63 * np.array([1, 2, 3, 4, 5, 6])
+    # amps = 1 / np.array([1, 2, 3, 4, 5, 6])
     # alpharange = 2.0
     # method = 'product'
 
     # call function dissmeasure for each interval
-    diss = np.array([0])
-    for alpha in np.linspace(1, alpharange, 1000):
-        f = np.append(freq, alpha*freq)
-        a = np.append(amp, amp)
-        d = dissmeasure(f, a, method)
-        diss = np.append(diss, d)
- 
-    plt.plot(np.linspace(1, alpharange, len(diss)), diss)
+    interval_count = 1000
+    dissonances = np.array([0])
+    for alpha in np.linspace(1, alpharange, interval_count):
+        # generate intervals by fixing one tone and varying the other
+        other_freqs = alpha * freqs
+        other_amps = amps
+        # concat frequencies from both tones in the interval
+        all_freqs = np.hstack([freqs, other_freqs])
+        all_amps = np.hstack([amps, amps])
+        d = dissmeasure(all_freqs, all_amps, method)
+        dissonances = np.append(dissonances, d)
+
+    plt.plot(np.linspace(1, alpharange, len(dissonances)), dissonances)
     plt.xscale('log')
     plt.xlim(1, alpharange)
  
@@ -80,7 +85,7 @@ if __name__ == '__main__':
     for n, d in [(2,1), (3,2), (5,3), (4,3), (5,4), (6,5)]:
         plt.axvline(n/d, color='silver')
         plt.annotate(str(n) + ':' + str(d),
-                     (n/d, max(diss)*2/3),
+                     (n/d, max(dissonances)*2/3),
                      horizontalalignment='center')
  
     plt.show()
