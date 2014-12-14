@@ -24,8 +24,24 @@ def white_noise(samples, amplitude=1.):
     return amplitude * np.random.rand(*t.shape)
 
 def save_wav(samples, filename, fs=44100, normalize=False, factor=((2**15))-1):
+    '''
+    Saves samples in given sampling frequency to a WAV file.
+    Samples are assumed to be in the [-1; 1] range and converted
+    to signed 16-bit integers.
+    '''
     samples = samples / np.max(np.abs(samples)) if normalize else samples
     wavfile.write(filename, fs, np.int16(samples * factor))
+
+def load_wav(filename, factor=(1 / (((2**15)) - 1))):
+    '''
+    Reads samples from a WAV file.
+    Samples are assumed to be signed 16-bit integers and
+    are converted to [-1; 1] range.
+    It returns a tuple of sampling frequency and actual samples.
+    '''
+    fs, samples = wavfile.read(filename)
+    samples = samples * factor
+    return fs, samples
 
 def play(filename):
     subprocess.call(['afplay', filename])
@@ -38,6 +54,7 @@ def generate_and_play(func, filename='test.wav', duration=1.,
         samples = fade(samples, fade_length)
     save_wav(samples, filename, normalize=normalize)
     play(filename)
+    return t, samples
 
 def amplitude_envelope(x):
     return abs(hilbert(x))
