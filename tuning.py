@@ -37,7 +37,7 @@ def experiment_errors_12tet_pitches_vs_harmonics():
         for i in indexes]
     plt.bar(indexes, errors)
 
-if __name__ == '__main__'
+if __name__ == '__main__':
 
     assert 1. == pitch_to_relative_freq(0., steps_per_octave=1)
     assert 2. == pitch_to_relative_freq(1., steps_per_octave=1)
