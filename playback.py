@@ -1,17 +1,12 @@
 import subprocess
 
-from synthesis import sample_time, fade
-from files import save_wav
+from synthesis import sample_time, fade, generate_and_save
+
 
 def play(filename):
     subprocess.call(['afplay', filename])
 
-def generate_and_play(func, filename='test.wav', duration=1.,
-    normalize=True, fade_ends=True, fade_length=100):
-    t = sample_time(0, duration)
-    samples = func(t)
-    if fade_ends:
-        samples = fade(samples, fade_length)
-    save_wav(samples, filename, should_normalize=normalize)
+def generate_and_play(func, filename='test.wav', **kwargs):
+    t, samples = generate_and_save(func, filename, **kwargs)
     play(filename)
     return t, samples

@@ -2,6 +2,7 @@ import numpy as np
 from scipy.signal import chirp
 
 from tuning import pitch_to_freq
+from files import save_wav
 
 def sample_time(since, until, fs=44100.):
     '''
@@ -35,12 +36,21 @@ def fade(samples, n, fade_in=True, fade_out=True):
         x[-n:] = out_window * x[-n:]
     return x
 
+def generate_and_save(func, filename='test.wav', duration=1.,
+    normalize=True, fade_ends=True, fade_length=100):
+    t = sample_time(0, duration)
+    samples = func(t)
+    if fade_ends:
+        samples = fade(samples, fade_length)
+    save_wav(samples, filename, should_normalize=normalize)
+    return t, samples
+
 if __name__ == '__main__':
     from playback import generate_and_play
 
     # plain 440 Hz A for 1 second
     generate_and_play(lambda t: sine(t, 440))
-    
+
     # 1 Hz dissonance
     generate_and_play(lambda t:
         np.sum(sine(t, f) for f in (440, 441)), duration=3)
@@ -56,16 +66,20 @@ if __name__ == '__main__':
     # C-G fifth
     generate_and_play(lambda t:
         np.sum(sine(t, pitch_to_freq(i)) for i in (0, 4, 7)))
-    
+
     # C major chord
     generate_and_play(lambda t:
         np.sum(sine(t, pitch_to_freq(i)) for i in (0, 4, 7)))
 
     # chirp signal - non-constant frequency
-    
+
     # linear chirp
     generate_and_play(lambda t: chirp(t, 440, 1, 880))
-    
+
     # constant 440 + raising ramp from 430 to 450
     generate_and_play(lambda t: sine(t, 440) + chirp(t, 440-10, 4, 440+10), duration=4)
-    
+
+
+    # Plomp-Levelt roughness maximum at the fifth
+    generate_and_play(lambda t:
+        np.sum(sine(t, f) for f in (36, 54)))
