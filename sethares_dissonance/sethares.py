@@ -71,6 +71,16 @@ def verotta_params():
     method = 'product'
     return freqs, amps, alpharange, method
 
+def my_params():
+    # Similar to Figure 3
+    # http://sethares.engr.wisc.edu/consemi.html#anchor15619672
+    base_freq = 125
+    freqs = base_freq * np.array([1])
+    amps = np.array([1])
+    alpharange = 2.1
+    method = 'min'
+    return freqs, amps, alpharange, method
+
 def evaluate(freqs, amps, alpharange, method, interval_count=1000):
     '''
     Evaluate the dissonance function for each interval.
@@ -109,7 +119,17 @@ if __name__ == '__main__':
 
     params = sethares_params()
     # params = verotta_params()
+    # params = my_params()
+    
+    freqs, amps, alpharange, method = params
+    print('frequencies', freqs)
+    print('amplitudes', amps)
+    print('alpharange', alpharange)
+    print('method', method)
+    
     dissonances, alphas = evaluate(*params)
+
+    np.savetxt('dissonances_sethares.txt', dissonances)
 
     plot_dissonance_curve(dissonances, alphas)
     plt.show()    
