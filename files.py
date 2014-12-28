@@ -23,4 +23,4 @@ def load_wav(filename, factor=(1 / (((2**15)) - 1))):
     '''
     fs, samples = wavfile.read(filename)
     samples = samples * factor
-    return fs, samples
+    return samples, fs
