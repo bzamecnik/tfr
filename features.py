@@ -1,7 +1,17 @@
 import numpy as np
+from numpy.linalg import norm
+
+def mean_power(x_blocks):
+    return np.sqrt(np.mean(x_blocks**2, axis=-1))
+
+def power(x_blocks):
+    return np.sqrt(np.sum(x_blocks**2, axis=-1))
 
 def mean_energy(x_blocks):
-    return np.sqrt(np.mean(x_blocks**2, axis=1))
+    return np.mean(x_blocks**2, axis=-1)
+
+def energy(x_blocks):
+    return np.sum(x_blocks**2, axis=-1)
 
 if __name__ == '__main__':
 
@@ -12,6 +22,6 @@ if __name__ == '__main__':
     def analyze_mean_energy(file, block_size=1024):
         x, fs = load_wav(file)
         blocks, t = split_to_blocks(x, block_size)
-        y = mean_energy(blocks)    
+        y = mean_energy(blocks)
         plt.semilogy(t, y)
         plt.ylim(0, 1)
