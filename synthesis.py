@@ -36,6 +36,21 @@ def fade(samples, n, fade_in=True, fade_out=True):
         x[-n:] = out_window * x[-n:]
     return x
 
+def complex_tone(partials):
+    # partial = ((freq0, amp0), (freq1, amp1), ...)
+    return lambda t: np.sum(
+        sine(t, freq=freq, amplitude=amp) for (freq, amp) in partials)
+
+def harmonic_partials(base_freq=1.0, n=10, amplitudes=[], spacing=1.0):
+    '''Generates a list of partials with even spacing.
+    n - number of partials
+    amplitudes - list o amplitudes, one for each partial
+    spacing - relative distance between adjacent frequencies'''
+    if not amplitudes or len(amplitudes) != n:
+        amplitudes = np.ones(n)
+    freqs = list(base_freq * (1 + np.arange(0, n) * spacing))
+    return zip(freqs, amplitudes)
+
 def generate_and_save(func, filename='test.wav', duration=1.,
     normalize=True, fade_ends=True, fade_length=100):
     t = sample_time(0, duration)
