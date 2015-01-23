@@ -14,7 +14,7 @@ def save_wav(samples, filename, fs=44100, should_normalize=False, factor=((2**15
     samples = normalize(samples) if should_normalize else samples
     wavfile.write(filename, fs, np.int16(samples * factor))
 
-def load_wav(filename, factor=(1 / (((2**15)) - 1))):
+def load_wav(filename, factor=(1 / (((2**15)) - 1)), mono_mix=True):
     '''
     Reads samples from a WAV file.
     Samples are assumed to be signed 16-bit integers and
@@ -23,4 +23,12 @@ def load_wav(filename, factor=(1 / (((2**15)) - 1))):
     '''
     fs, samples = wavfile.read(filename)
     samples = samples * factor
+    if mono_mix:
+        samples = to_mono(samples)
     return samples, fs
+
+def to_mono(samples):
+    if samples.ndim == 1:
+        return samples
+    else:
+        return samples.mean(axis=-1)
