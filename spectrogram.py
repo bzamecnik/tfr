@@ -1,7 +1,11 @@
 import numpy as np
 import math
+import os.path
+import scipy
 
+from files import load_wav
 from features import mean_power
+from analysis import split_to_blocks
 
 def magnitude_spectrum(x):
     '''
