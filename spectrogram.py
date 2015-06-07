@@ -53,3 +53,5 @@ def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
     scipy.misc.imsave('spectrogram/' + image_filename, X.T[::-1])
     return X, x, times
 
+def fftfreqs(block_size, fs):
+    return np.fft.fftfreq(block_size, 1/fs)[:block_size / 2]
