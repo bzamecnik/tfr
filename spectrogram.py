@@ -49,4 +49,5 @@ def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
         # dbFB
         X = 20 * np.log10(np.maximum(1e-6, X))
     # imshow(X.T, interpolation='nearest', cmap='gray')
-    scipy.misc.imsave('spectrogram/' + filename.replace('.wav', '.png'), X.T[::-1])
+    image_filename = os.path.basename(filename).replace('.wav', '.png')
+    scipy.misc.imsave('spectrogram/' + image_filename, X.T[::-1])
