@@ -51,3 +51,5 @@ def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
     # imshow(X.T, interpolation='nearest', cmap='gray')
     image_filename = os.path.basename(filename).replace('.wav', '.png')
     scipy.misc.imsave('spectrogram/' + image_filename, X.T[::-1])
+    return X, x, times
+
