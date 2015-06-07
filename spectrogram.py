@@ -39,11 +39,15 @@ def normalize_mean_power(x):
     '''
     return x / mean_power(x)
 
+def create_window(size):
+    w = scipy.hanning(size)
+    w = w / mean_power(w)
+    return w
+
 def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
     song, fs = load_wav(filename)
     x, times = split_to_blocks(song, block_size, hop_size=hop_size)
-    w = scipy.hanning(block_size)
-    w = w / mean_power(w)
+    w = create_window(block_size)
     X = magnitude_spectrum(x * w)
     if to_log:
         # dbFB
