@@ -94,6 +94,7 @@ if __name__ == '__main__':
     # constant 440 + raising ramp from 430 to 450
     generate_and_play(lambda t: sine(t, 440) + chirp(t, 440-10, 4, 440+10), duration=4)
 
+    generate_and_play(lambda t: sine(t, 440) + chirp(t, 440-100, 10, 440+100), duration=10)
 
     # Plomp-Levelt roughness maximum at the fifth
     generate_and_play(lambda t:
