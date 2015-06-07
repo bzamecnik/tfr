@@ -57,3 +57,7 @@ target/
 
 *.png
 *.wav
+*.png
+
+data/
+results/
