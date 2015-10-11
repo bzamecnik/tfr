@@ -59,3 +59,9 @@ def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
 
 def fftfreqs(block_size, fs):
     return np.fft.fftfreq(block_size, 1/fs)[:block_size / 2]
+
+def inverse_spectrum(spectrum, window):
+    '''
+    inverse_spectrum(np.fft.fft(x * window), window) == x
+    '''
+    return np.real(np.fft.ifft(spectrum)) / window
