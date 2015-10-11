@@ -55,6 +55,8 @@ target/
 
 # -----
 
+.ipynb_checkpoints
+
 *.png
 *.wav
 *.png
