@@ -59,7 +59,7 @@ def estimate_group_delays(crossFreqSpectrum):
 def open_file(filename, block_size, hop_size):
     song, fs = load_wav(filename)
     x, times = split_to_blocks(song, block_size, hop_size=hop_size)
-    return x
+    return x, times, fs
 
 def compute_spectra(x, w):
     X = np.fft.fft(x * w)
@@ -76,7 +76,8 @@ def db_scale(magnitude_spectrum):
     threshold = -np.log10(min_amplitude)
     return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)    
 
-def requantize_spectrogram(X_cross, X_instfreqs):
+def requantize_f_spectrogram(X_cross, X_instfreqs):
+    '''Only requantize by frequency'''
     X_reassigned = np.empty(X_cross.shape)
     N = X_cross.shape[1]
     magnitude_spectrum = abs(X_cross) / N
@@ -85,21 +86,46 @@ def requantize_spectrogram(X_cross, X_instfreqs):
         X_reassigned[i, :] = np.histogram(X_instfreqs[i], N, range=(0,1), weights=weights[i])[0]
     return X_reassigned
 
+def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights=None):
+    block_duration = block_size / fs
+    block_center_time = block_duration / 2
+    X_time = np.tile(times + block_center_time, (X_group_delays.shape[1], 1)).T \
+        + X_group_delays * block_duration
+    time_range = (times[0], times[-1] + block_duration)
+    freq_range = (0, 1)
+    bins = X_inst_freqs.shape
+    
+    # time_range = (0, 2)
+    # freq_range = (0, 0.4)
+    
+    counts, x_edges, y_edges = np.histogram2d(
+        X_time.flatten(), X_inst_freqs.flatten(),
+        weights=weights.flatten(),
+        range=(time_range, freq_range),
+        bins=bins)
+    return counts, x_edges, y_edges
+
 def process_spectrogram(filename, block_size, hop_size):
-    x = open_file(filename, block_size, hop_size)
+    x, times, fs = open_file(filename, block_size, hop_size)
     w = create_window(block_size)
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     
-    X_reassigned = requantize_spectrogram(X_cross_time, X_inst_freqs)
-    X_magnitudes = db_scale(abs(X) / X.shape[1])
+    X_reassigned_f = requantize_f_spectrogram(X_cross_time, X_inst_freqs)
+    # N = X_cross.shape[1]
+    # magnitude_spectrum = abs(X_cross_time) / N
+    # weights = db_scale(magnitude_spectrum)
+    X_magnitudes = db_scale(abs(X_cross_time) / X.shape[1])
+    weights = X_magnitudes
+    X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights)[0]
     image_filename = os.path.basename(filename).replace('.wav', '.png')
-    scipy.misc.imsave('reassigned_' + image_filename, real_half(X_reassigned).T[::-1])
+    scipy.misc.imsave('reassigned_f_' + image_filename, real_half(X_reassigned_f).T[::-1])
+    scipy.misc.imsave('reassigned_tf_' + image_filename, real_half(X_reassigned_tf).T[::-1])
     scipy.misc.imsave('normal_' + image_filename, real_half(X_magnitudes).T[::-1])
 
-    X_time = X_group_delays + np.tile(np.arange(X.shape[0]).reshape(-1, 1), X.shape[1])
-    idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)
-    plt.scatter(X_time.flatten()[idx], X_inst_freqs.flatten()[idx], alpha=0.1)
-    plt.savefig('scatter_' + image_filename)
+#     X_time = X_group_delays + np.tile(np.arange(X.shape[0]).reshape(-1, 1), X.shape[1])
+#     idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)
+#     plt.scatter(X_time.flatten()[idx], X_inst_freqs.flatten()[idx], alpha=0.1)
+#     plt.savefig('scatter_' + image_filename)
 
 def tf_scatter():
     idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)
