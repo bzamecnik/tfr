@@ -1,6 +1,6 @@
 # TODO
 
-*- zkusit nagenerovat 36 Hz + kvintu 54 Hz
+- [x] zkusit nagenerovat 36 Hz + kvintu 54 Hz
 	- podle Plomp-Levelt roughness křivky by měla mít maximum na kvintě
 
 - hypotéza: Vhodný model pro roughness funkci je log-gaussian.
@@ -17,16 +17,16 @@
 	- sekvencer - více zvuků v čase
 	- zkoušet rytmy
 - analyzovat:
-	*- rozsekat nahrávku do framů
+	- [x] rozsekat nahrávku do framů
 		- block size, step size
-	- analyzovat každý frame - počítat features
+	- [x] analyzovat každý frame - počítat features
 		- zatím jednoframové
 		- později na základě více framů
 		- off-line
 	- jednoduché features:
-		*- energy (RMS)
-		- Fourierovo spectrum
-		- magnitude spectrum
+		- [x] energy (RMS)
+		- [x] Fourierovo spectrum
+		- [x] magnitude spectrum
 	- další features:
 		- dissonance
 		- harmonický tón vs. šum
