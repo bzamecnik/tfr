@@ -133,13 +133,15 @@ def reassigned_spectrogram(x, w, to_log=True):
     X_reassigned_f = requantize_f_spectrogram(X_cross_time, X_inst_freqs, to_log)
     return real_half(X_reassigned_f)
 
-def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1):
+def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     "complete reassigned spectrogram with requantization to pitch bins"
     # better: give frequency range
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     n_blocks, n_freqs = X_cross_time.shape
     X_mag = abs(X_cross_time) / n_freqs
-    weights = real_half(db_scale(X_mag)).flatten()
+    if to_log:
+        X_mag = db_scale(X_mag)
+    weights = real_half(X_mag).flatten()
     eps = np.finfo(np.float32).eps
     raw_bins = quantize_freqs_to_pitch_bins(np.maximum(fs * real_half(X_inst_freqs), eps), bin_division=bin_division).flatten()
     nonzero_ix = abs(weights) > eps
