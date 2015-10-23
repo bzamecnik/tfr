@@ -6,6 +6,7 @@ import scipy
 from files import load_wav
 from spectrogram import real_half, create_window
 from analysis import split_to_blocks
+from tuning import pitch_to_freq, freq_to_pitch, pitch_bin_range, quantize_freqs_to_pitch_bins
 
 def cross_spectrum(spectrumA, spectrumB):
     '''
@@ -131,6 +132,26 @@ def reassigned_spectrogram(x, w, to_log=True):
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     X_reassigned_f = requantize_f_spectrogram(X_cross_time, X_inst_freqs, to_log)
     return real_half(X_reassigned_f)
+
+def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1):
+    "complete reassigned spectrogram with requantization to pitch bins"
+    # better: give frequency range
+    X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
+    n_blocks, n_freqs = X_cross_time.shape
+    X_mag = abs(X_cross_time) / n_freqs
+    weights = real_half(db_scale(X_mag)).flatten()
+    eps = np.finfo(np.float32).eps
+    raw_bins = quantize_freqs_to_pitch_bins(np.maximum(fs * real_half(X_inst_freqs), eps), bin_division=bin_division).flatten()
+    nonzero_ix = abs(weights) > eps
+    clipped_bins = np.clip(raw_bins, *bin_range)
+    X_chromagram = histogram2d(
+        np.repeat(np.arange(n_blocks), n_freqs / 2),
+        clipped_bins,
+        bins=(np.arange(n_blocks + 1),
+              np.arange(bin_range[0], bin_range[1] + 1, 1 / bin_division)),
+        weights=weights
+    )[0]
+    return X_chromagram
 
 def tf_scatter():
     idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)

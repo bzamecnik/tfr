@@ -20,6 +20,8 @@
 
 # equal temperament
 
+import numpy as np
+
 def pitch_to_freq(pitch, base_freq=440, steps_per_octave=12, octave_ratio=2):
     factor = pitch_to_relative_freq(pitch, steps_per_octave, octave_ratio)
     return factor * base_freq
@@ -27,6 +29,13 @@ def pitch_to_freq(pitch, base_freq=440, steps_per_octave=12, octave_ratio=2):
 def pitch_to_relative_freq(pitch, steps_per_octave=1, octave_ratio=2):
     return pow(octave_ratio, pitch / steps_per_octave)
 
+def freq_to_pitch(freq, base_freq=440, steps_per_octave=12, octave_ratio=2):
+    rel_freq = freq / base_freq
+    if octave_ratio == 2:
+        p = np.log2(rel_freq)
+    else:
+        p = np.log(rel_freq) / np.log(2)
+    return p * steps_per_octave
 
 def experiment_errors_12tet_pitches_vs_harmonics():
     '''Generate pitches uniformly and examine how they are close to harmonics.'''
@@ -36,6 +45,17 @@ def experiment_errors_12tet_pitches_vs_harmonics():
     errors = [error(pitch_to_relative_freq(i, steps_per_octave=12)) \
         for i in indexes]
     plt.bar(indexes, errors)
+
+def pitch_bin_range(pitch_start=-4*12, pitch_end=5*12 + 8, pitch_step=1, base_freq=440):
+    "generates a range of pitch bins and their frequencies"
+    # [-48,67) -> [~27.5, 21096.2) Hz
+    pitch_range = np.arange(pitch_start, pitch_end, pitch_step)
+    bin_center_freqs = np.array([pitch_to_freq(f, base_freq=base_freq) for f in pitch_range])
+    return pitch_range, bin_center_freqs
+
+def quantize_freqs_to_pitch_bins(freqs, bin_division=1, freq_to_pitch=freq_to_pitch):
+    "quantizes frequencies to nearest bins (with optional division of bins)"
+    return np.round(freq_to_pitch(freqs) * bin_division) / bin_division
 
 if __name__ == '__main__':
 
