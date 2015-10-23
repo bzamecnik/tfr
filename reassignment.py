@@ -74,14 +74,14 @@ def compute_spectra(x, w):
 def db_scale(magnitude_spectrum):
     min_amplitude = 1e-6
     threshold = -np.log10(min_amplitude)
-    return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)    
+    return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)
 
-def requantize_f_spectrogram(X_cross, X_instfreqs):
+def requantize_f_spectrogram(X_cross, X_instfreqs, to_log=True):
     '''Only requantize by frequency'''
     X_reassigned = np.empty(X_cross.shape)
     N = X_cross.shape[1]
     magnitude_spectrum = abs(X_cross) / N
-    weights = db_scale(magnitude_spectrum)
+    weights = db_scale(magnitude_spectrum) if to_log else magnitude_spectrum
     for i in range(X_cross.shape[0]):
         X_reassigned[i, :] = np.histogram(X_instfreqs[i], N, range=(0,1), weights=weights[i])[0]
     return X_reassigned
@@ -94,10 +94,10 @@ def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, f
     time_range = (times[0], times[-1] + block_duration)
     freq_range = (0, 1)
     bins = X_inst_freqs.shape
-    
+
     # time_range = (0, 2)
     # freq_range = (0, 0.4)
-    
+
     counts, x_edges, y_edges = np.histogram2d(
         X_time.flatten(), X_inst_freqs.flatten(),
         weights=weights.flatten(),
@@ -109,7 +109,7 @@ def process_spectrogram(filename, block_size, hop_size):
     x, times, fs = open_file(filename, block_size, hop_size)
     w = create_window(block_size)
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
-    
+
     X_reassigned_f = requantize_f_spectrogram(X_cross_time, X_inst_freqs)
     # N = X_cross.shape[1]
     # magnitude_spectrum = abs(X_cross_time) / N
