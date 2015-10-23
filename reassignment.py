@@ -144,7 +144,7 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1):
     raw_bins = quantize_freqs_to_pitch_bins(np.maximum(fs * real_half(X_inst_freqs), eps), bin_division=bin_division).flatten()
     nonzero_ix = abs(weights) > eps
     clipped_bins = np.clip(raw_bins, *bin_range)
-    X_chromagram = histogram2d(
+    X_chromagram = np.histogram2d(
         np.repeat(np.arange(n_blocks), n_freqs / 2),
         clipped_bins,
         bins=(np.arange(n_blocks + 1),
