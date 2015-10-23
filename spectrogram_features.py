@@ -9,7 +9,7 @@ import os
 from spectrogram import create_window, magnitude_spectrum
 from files import load_wav
 from analysis import split_to_blocks
-from reassignment import reassigned_spectrogram
+from reassignment import reassigned_spectrogram, chromagram
 
 def stft_spectrogram(x, w, to_log):
     X = magnitude_spectrum(x * w)
@@ -27,6 +27,8 @@ def spectrogram_features(input_filename, output_filename, block_size, hop_size, 
         spectrogram_func = stft_spectrogram
     elif spectrogram_type == 'reassigned':
         spectrogram_func = reassigned_spectrogram
+    elif spectrogram_type == 'chromagram':
+        spectrogram_func = lambda x, w, to_log: chromagram(x, w, fs, to_log=to_log)
 
     X = spectrogram_func(x, w, to_log)
 
@@ -43,7 +45,7 @@ def parse_args():
     parser.add_argument('--output', help='output file in NumPy npz format')
     parser.add_argument('-b', '--block-size', type=int, default=2048, help='STFT block size')
     parser.add_argument('-p', '--hop-size', type=int, default=512, help='STFT hop size')
-    parser.add_argument('-t', '--type', default='stft', help='plain "stft" or "reassigned" spectrogram')
+    parser.add_argument('-t', '--type', default='stft', help='plain "stft", "reassigned" spectrogram or "chromagram"')
 
     return parser.parse_args()
 
