@@ -127,6 +127,11 @@ def process_spectrogram(filename, block_size, hop_size):
 #     plt.scatter(X_time.flatten()[idx], X_inst_freqs.flatten()[idx], alpha=0.1)
 #     plt.savefig('scatter_' + image_filename)
 
+def reassigned_spectrogram(x, w, to_log=True):
+    X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
+    X_reassigned_f = requantize_f_spectrogram(X_cross_time, X_inst_freqs, to_log)
+    return real_half(X_reassigned_f)
+
 def tf_scatter():
     idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)
     scatter(X_time.flatten()[idx], X_inst_freqs.flatten()[idx], alpha=0.1)
