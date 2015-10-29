@@ -85,6 +85,7 @@ def requantize_f_spectrogram(X_cross, X_instfreqs, to_log=True):
     weights = magnitude_spectrum
     for i in range(X_cross.shape[0]):
         X_reassigned[i, :] = np.histogram(X_instfreqs[i], N, range=(0,1), weights=weights[i])[0]
+    X_reassigned = X_reassigned ** 2
     if to_log:
          X_reassigned = db_scale(X_reassigned)
     return X_reassigned
@@ -120,7 +121,7 @@ def process_spectrogram(filename, block_size, hop_size):
     X_magnitudes = abs(X_cross_time) / X.shape[1]
     weights = X_magnitudes
     X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights)[0]
-    X_reassigned_tf = db_scale(X_reassigned_tf)
+    X_reassigned_tf = db_scale(X_reassigned_tf ** 2)
     image_filename = os.path.basename(filename).replace('.wav', '.png')
     scipy.misc.imsave('reassigned_f_' + image_filename, real_half(X_reassigned_f).T[::-1])
     scipy.misc.imsave('reassigned_tf_' + image_filename, real_half(X_reassigned_tf).T[::-1])
@@ -153,6 +154,7 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
               np.arange(bin_range[0], bin_range[1] + 1, 1 / bin_division)),
         weights=weights
     )[0]
+    X_chromagram = X_chromagram ** 2
     if to_log:
         X_chromagram = db_scale(X_chromagram)
     return X_chromagram

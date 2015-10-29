@@ -34,7 +34,7 @@ def normalize_mean_power(x):
     Normalize a vector so that it has energy equal to its length,
     ie. mean power equal to 1.0.
     Useful to normalize the FFT window.
-    
+
     np.allclose(normalize_window(x), len(x))
     '''
     return x / mean_power(x)
@@ -48,7 +48,7 @@ def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
     song, fs = load_wav(filename)
     x, times = split_to_blocks(song, block_size, hop_size=hop_size)
     w = create_window(block_size)
-    X = magnitude_spectrum(x * w)
+    X = magnitude_spectrum(x * w) ** 2
     if to_log:
         # dbFB
         X = 20 * np.log10(np.maximum(1e-6, X))

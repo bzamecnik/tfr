@@ -12,7 +12,7 @@ from analysis import split_to_blocks
 from reassignment import reassigned_spectrogram, chromagram
 
 def stft_spectrogram(x, w, to_log):
-    X = magnitude_spectrum(x * w)
+    X = magnitude_spectrum(x * w) ** 2
     if to_log:
         # dbFS
         X = 20 * np.log10(np.maximum(1e-6, X))
