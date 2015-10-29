@@ -73,9 +73,10 @@ def compute_spectra(x, w):
     return X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays
 
 def db_scale(magnitude_spectrum):
-    min_amplitude = 1e-6
-    threshold = -np.log10(min_amplitude)
-    return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)
+    # min_amplitude = 1e-6
+    # threshold = -np.log10(min_amplitude)
+    # return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)
+    return 20 * np.log10(np.maximum(1e-6, magnitude_spectrum))
 
 def requantize_f_spectrogram(X_cross, X_instfreqs, to_log=True):
     '''Only requantize by frequency'''
