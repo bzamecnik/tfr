@@ -27,8 +27,11 @@ def split_to_blocks(x, block_size=1024, hop_size=None, fs=44100):
     blocks = np.vstack(
         pad(x[start:start + block_size], block_size) \
         for start in range(0, hop_size * block_count, hop_size))
-    times = np.arange(0, len(x)/fs, hop_size/fs)
+    times = split_block_times(len(x), fs, hop_size)
     return blocks, times
+
+def split_block_times(N, fs, hop_size):
+    return np.arange(0, N/fs, hop_size/fs)
 
 def test_split_to_blocks():
     assert np.array([
@@ -37,10 +40,10 @@ def test_split_to_blocks():
         [12, 13, 14, 15, 16, 17, 18, 19],
         [18, 19, 20, 21, 22,  0,  0,  0],
     ]) == split_to_blocks(np.arange(23), 8, 6)
-        
+
 
 if __name__ == '__main__':
-    
+
     # Dissonance of two sines f_1 and f_2 is like
     # amplitude modulation of abs(f_1 - f_2) onto mean(f_1, f_2)
     # The amplitude envelope can be obtained as the
