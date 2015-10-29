@@ -143,12 +143,11 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
         X_mag = db_scale(X_mag)
     weights = real_half(X_mag).flatten()
     eps = np.finfo(np.float32).eps
-    raw_bins = quantize_freqs_to_pitch_bins(np.maximum(fs * real_half(X_inst_freqs), eps), bin_division=bin_division).flatten()
+    pitch_bins = quantize_freqs_to_pitch_bins(np.maximum(fs * real_half(X_inst_freqs), eps), bin_division=bin_division).flatten()
     nonzero_ix = abs(weights) > eps
-    clipped_bins = np.clip(raw_bins, *bin_range)
     X_chromagram = np.histogram2d(
         np.repeat(np.arange(n_blocks), n_freqs / 2),
-        clipped_bins,
+        pitch_bins,
         bins=(np.arange(n_blocks + 1),
               np.arange(bin_range[0], bin_range[1] + 1, 1 / bin_division)),
         weights=weights
