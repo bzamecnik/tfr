@@ -82,9 +82,11 @@ def requantize_f_spectrogram(X_cross, X_instfreqs, to_log=True):
     X_reassigned = np.empty(X_cross.shape)
     N = X_cross.shape[1]
     magnitude_spectrum = abs(X_cross) / N
-    weights = db_scale(magnitude_spectrum) if to_log else magnitude_spectrum
+    weights = magnitude_spectrum
     for i in range(X_cross.shape[0]):
         X_reassigned[i, :] = np.histogram(X_instfreqs[i], N, range=(0,1), weights=weights[i])[0]
+    if to_log:
+         X_reassigned = db_scale(X_reassigned)
     return X_reassigned
 
 def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights=None):
@@ -115,9 +117,10 @@ def process_spectrogram(filename, block_size, hop_size):
     # N = X_cross.shape[1]
     # magnitude_spectrum = abs(X_cross_time) / N
     # weights = db_scale(magnitude_spectrum)
-    X_magnitudes = db_scale(abs(X_cross_time) / X.shape[1])
+    X_magnitudes = abs(X_cross_time) / X.shape[1]
     weights = X_magnitudes
     X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights)[0]
+    X_reassigned_tf = db_scale(X_reassigned_tf)
     image_filename = os.path.basename(filename).replace('.wav', '.png')
     scipy.misc.imsave('reassigned_f_' + image_filename, real_half(X_reassigned_f).T[::-1])
     scipy.misc.imsave('reassigned_tf_' + image_filename, real_half(X_reassigned_tf).T[::-1])
@@ -135,12 +138,10 @@ def reassigned_spectrogram(x, w, to_log=True):
 
 def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     "complete reassigned spectrogram with requantization to pitch bins"
-    # better: give frequency range
+    # TODO: better give frequency range
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     n_blocks, n_freqs = X_cross_time.shape
     X_mag = abs(X_cross_time) / n_freqs
-    if to_log:
-        X_mag = db_scale(X_mag)
     weights = real_half(X_mag).flatten()
     eps = np.finfo(np.float32).eps
     pitch_bins = quantize_freqs_to_pitch_bins(np.maximum(fs * real_half(X_inst_freqs), eps), bin_division=bin_division).flatten()
@@ -152,6 +153,8 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
               np.arange(bin_range[0], bin_range[1] + 1, 1 / bin_division)),
         weights=weights
     )[0]
+    if to_log:
+        X_chromagram = db_scale(X_chromagram)
     return X_chromagram
 
 def tf_scatter():
