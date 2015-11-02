@@ -5,6 +5,7 @@ suitable as features for machine learning.
 
 import numpy as np
 import os
+import scipy
 
 from spectrogram import create_window, magnitude_spectrum
 from files import load_wav
@@ -18,8 +19,7 @@ def stft_spectrogram(x, w, to_log):
         X = 20 * np.log10(np.maximum(1e-6, X))
     return X
 
-def spectrogram_features(input_filename, output_filename, block_size, hop_size, spectrogram_type, to_log=True):
-    song, fs = load_wav(input_filename)
+def spectrogram_features(song, fs, block_size, hop_size, spectrogram_type, to_log=True):
     x, times = split_to_blocks(song, block_size, hop_size=hop_size)
     w = create_window(block_size)
 
@@ -31,11 +31,16 @@ def spectrogram_features(input_filename, output_filename, block_size, hop_size, 
         spectrogram_func = lambda x, w, to_log: chromagram(x, w, fs, to_log=to_log)
 
     X = spectrogram_func(x, w, to_log)
+    return X
 
+def spectrogram_features_to_file(input_filename, output_filename, block_size, hop_size, spectrogram_type, to_log=True):
+    song, fs = load_wav(input_filename)
+    X = spectrogram_features(song, fs, block_size, hop_size, spectrogram_type, to_log)
     np.savez_compressed(output_filename, X)
+    # scipy.misc.imsave(output_filename.replace('.npz', '.png'), X.T[::-1])
 
 def default_output_filename(input_file_name, type):
-    return os.path.basename(input_file_name).replace('.wav', '_spectrogram_%s.npz' % type)
+    return os.path.basename(input_file_name).replace('.wav', '_power_spectrogram_%s.npz' % type)
 
 def parse_args():
     import argparse
@@ -54,4 +59,4 @@ if __name__ == '__main__':
 
     output = args.output if args.output else default_output_filename(args.input_file, args.type)
 
-    spectrogram_features(args.input_file, output, args.block_size, args.hop_size, args.type)
+    spectrogram_features_to_file(args.input_file, output, args.block_size, args.hop_size, args.type)
