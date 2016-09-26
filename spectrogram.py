@@ -20,13 +20,13 @@ def magnitude_spectrum(x):
 
 def real_half(X):
     N = X.shape[1]
-    return np.hstack([0.5 *  X[:, :1], X[:, 1:N/2]])
+    return np.hstack([0.5 *  X[:, :1], X[:, 1:N//2]])
 
 def energy_weighted_spectrum(x):
     N = x.shape[-1]
     X = np.fft.fft(x)
     # np.allclose(energy(abs(X) / math.sqrt(N)), energy(x))
-    # np.allclose(energy(abs(X[:N/2]) / math.sqrt(N/2)), energy(x))
+    # np.allclose(energy(abs(X[:N//2]) / math.sqrt(N//2)), energy(x))
     return abs(X) / math.sqrt(N)
 
 def normalize_mean_power(x):
@@ -58,7 +58,7 @@ def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
     return X, x, times
 
 def fftfreqs(block_size, fs):
-    return np.fft.fftfreq(block_size, 1/fs)[:block_size / 2]
+    return np.fft.fftfreq(block_size, 1/fs)[:block_size // 2]
 
 def inverse_spectrum(spectrum, window):
     '''
