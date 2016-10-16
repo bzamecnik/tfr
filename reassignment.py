@@ -1,12 +1,11 @@
 import os
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy
 
 from files import load_wav
 from spectrogram import real_half, create_window
 from analysis import split_to_blocks
-from tuning import pitch_to_freq, freq_to_pitch, pitch_bin_range, quantize_freqs_to_pitch_bins
+from tuning import quantize_freqs_to_pitch_bins
 
 def cross_spectrum(spectrumA, spectrumB):
     '''
@@ -147,7 +146,6 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     weights = real_half(X_mag).flatten()
     eps = np.finfo(np.float32).eps
     pitch_bins = quantize_freqs_to_pitch_bins(np.maximum(fs * real_half(X_inst_freqs), eps), bin_division=bin_division).flatten()
-    nonzero_ix = abs(weights) > eps
     X_chromagram = np.histogram2d(
         np.repeat(np.arange(n_blocks), n_freqs / 2),
         pitch_bins,
