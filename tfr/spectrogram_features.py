@@ -46,7 +46,7 @@ def parse_args():
 
     parser = argparse.ArgumentParser(description='Extracts STFT magnitude spectrogram features.')
     parser.add_argument('input_file', metavar='INPUT', help='input file in WAV format')
-    parser.add_argument('--output', help='output file in NumPy npz format')
+    parser.add_argument('output_file', metavar='OUTPUT', nargs='?', help='output file in NumPy npz format')
     parser.add_argument('-b', '--block-size', type=int, default=2048, help='STFT block size')
     parser.add_argument('-p', '--hop-size', type=int, default=512, help='STFT hop size')
     parser.add_argument('-t', '--type', default='stft', help='plain "stft", "reassigned" spectrogram or "chromagram"')
@@ -56,6 +56,6 @@ def parse_args():
 if __name__ == '__main__':
     args = parse_args()
 
-    output = args.output if args.output else default_output_filename(args.input_file, args.type)
+    output = args.output_file if args.output_file else default_output_filename(args.input_file, args.type)
 
     spectrogram_features_to_file(args.input_file, output, args.block_size, args.hop_size, args.type)
