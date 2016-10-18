@@ -1,5 +1,9 @@
 # tfr - time-frequency reassignment in Python
 
+[![PyPI version](https://img.shields.io/pypi/v/tfr.svg)](https://pypi.python.org/pypi/tfr)
+![Supported Python versions](https://img.shields.io/pypi/pyversions/tfr.svg)
+![License](https://img.shields.io/pypi/l/tfr.svg)
+
 Spectral audio feature extraction using [time-frequency reassignment](https://en.wikipedia.org/wiki/Reassignment_method).
 
 ![reassigned spectrogram illustration](reassigned-spectrogram.png)
