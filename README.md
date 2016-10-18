@@ -1,6 +1,6 @@
 # tfr - time-frequency reassignment in Python
 
-Spectral audio feature extraction using [time-frequency reassignment](en.wikipedia.org/wiki/Reassignment_method).
+Spectral audio feature extraction using [time-frequency reassignment](https://en.wikipedia.org/wiki/Reassignment_method).
 
 ![reassigned spectrogram illustration](reassigned-spectrogram.png)
 
