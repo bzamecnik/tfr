@@ -7,14 +7,23 @@ install_dev:
 uninstall:
 	pip uninstall tfr
 
+clean:
+	rm -r build/ dist/ tfr.egg-info/
+
+# twine - a tool for uploading packages to PyPI
+install_twine:
+	pip isntall twine
+
+build:
+	python setup.py sdist
+	python setup.py bdist_wheel --universal
 
 # PyPI production
-pypi_publish:
-	python setup.py register -r pypi
+pypi_register:
+	twine tfr-*.whl
 
 publish:
-	python setup.py sdist upload -r pypi
-
+	twine upload dist/*
 
 # PyPI test
 test_pypi_register:
