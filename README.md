@@ -11,12 +11,15 @@ A reassigned spectrogram often provides more precise localization of energy in t
 ## Installation
 
 ```
-git clone https://github.com/bzamecnik/tfr.git
-cd tfr
-python setup.py develop
+pip install tfr
 ```
 
-Sorry, pip packaging will come...
+Or for development (all code changes will be available):
+
+```
+git clone https://github.com/bzamecnik/tfr.git
+pip install -e tfr
+```
 
 ## Usage
 
