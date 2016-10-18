@@ -5,7 +5,6 @@ suitable as features for machine learning.
 
 import numpy as np
 import os
-import scipy
 
 from spectrogram import create_window, magnitude_spectrum
 from files import load_wav

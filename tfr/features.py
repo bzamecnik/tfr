@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.linalg import norm
 
 def mean_power(x_blocks):
     return np.sqrt(np.mean(x_blocks**2, axis=-1))
