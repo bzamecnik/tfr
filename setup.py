@@ -8,4 +8,9 @@ setup(name='tfr',
       author_email='bohumir.zamecnik@gmail.com',
       license='MIT',
       packages=['tfr'],
-      zip_safe=False)
+      zip_safe=False,
+      install_requires=[
+         'numpy',
+         'scikit-learn',
+         'scipy',
+      ])
