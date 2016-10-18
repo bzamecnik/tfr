@@ -1,11 +1,11 @@
 import os
 import numpy as np
-import scipy
 
 from .files import load_wav
 from .spectrogram import real_half, create_window
 from .analysis import split_to_blocks
 from .tuning import quantize_freqs_to_pitch_bins
+from .plots import save_raw_spectrogram_bitmap
 
 def cross_spectrum(spectrumA, spectrumB):
     '''
@@ -120,9 +120,9 @@ def process_spectrogram(filename, block_size, hop_size):
     X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights)[0]
     X_reassigned_tf = db_scale(X_reassigned_tf ** 2)
     image_filename = os.path.basename(filename).replace('.wav', '.png')
-    scipy.misc.imsave('reassigned_f_' + image_filename, real_half(X_reassigned_f).T[::-1])
-    scipy.misc.imsave('reassigned_tf_' + image_filename, real_half(X_reassigned_tf).T[::-1])
-    scipy.misc.imsave('normal_' + image_filename, real_half(X_magnitudes).T[::-1])
+    save_raw_spectrogram_bitmap('reassigned_f_' + image_filename, real_half(X_reassigned_f))
+    save_raw_spectrogram_bitmap('reassigned_tf_' + image_filename, real_half(X_reassigned_tf))
+    save_raw_spectrogram_bitmap('normal_' + image_filename, real_half(X_magnitudes))
 
 #     X_time = X_group_delays + np.tile(np.arange(X.shape[0]).reshape(-1, 1), X.shape[1])
 #     idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)

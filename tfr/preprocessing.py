@@ -20,7 +20,7 @@ class ChromagramTransformer(BaseEstimator, TransformerMixin):
         """
         Transforms audio clip X into a normalized chromagram.
         Input: X - mono audio clip - numpy array of shape (samples,)
-        Ooutput: X_chromagram - numpy array of shape (blocks, bins)
+        Output: X_chromagram - numpy array of shape (blocks, bins)
         """
         X_blocks, X_times = split_to_blocks(X,
             self.block_size, self.hop_size, self.sample_rate)
