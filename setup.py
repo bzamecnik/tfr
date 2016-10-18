@@ -13,4 +13,23 @@ setup(name='tfr',
          'numpy',
          'scikit-learn',
          'scipy',
+      ],
+      # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+      classifiers=[
+          # How mature is this project? Common values are
+          #   3 - Alpha
+          #   4 - Beta
+          #   5 - Production/Stable
+          'Development Status :: 3 - Alpha',
+
+          'Intended Audience :: Developers',
+          'Intended Audience :: Science/Research',
+          'Topic :: Multimedia :: Sound/Audio :: Analysis',
+
+          'License :: OSI Approved :: MIT License',
+
+          'Programming Language :: Python :: 3',
+
+          'Operating System :: POSIX :: Linux',
+          'Operating System :: MacOS :: MacOS X',
       ])
