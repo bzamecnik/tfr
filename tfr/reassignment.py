@@ -46,8 +46,8 @@ def estimate_instant_freqs(crossTimeSpectrum):
     instantaneous frequencies computed over a single frame of the digital
     short-time Fourier transform.
     Instantaneous frequency - derivative of phase by time.
-	cif = angle(crossSpectrumTime) * sampleRate / (2 * pi)
-	In this case the return value is normalized (not multiplied by sampleRate).
+    cif = angle(crossSpectrumTime) * sampleRate / (2 * pi)
+    In this case the return value is normalized (not multiplied by sampleRate).
     Basically it is phase normalized to the [0.0; 1.0] interval,
     instead of absolute [0.0; sampleRate].
     '''
@@ -98,9 +98,6 @@ def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, f
     time_range = (times[0], times[-1] + block_duration)
     freq_range = (0, 1)
     bins = X_inst_freqs.shape
-
-    # time_range = (0, 2)
-    # freq_range = (0, 0.4)
 
     counts, x_edges, y_edges = np.histogram2d(
         X_time.flatten(), X_inst_freqs.flatten(),
@@ -157,10 +154,6 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     if to_log:
         X_chromagram = db_scale(X_chromagram)
     return X_chromagram
-
-def tf_scatter():
-    idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)
-    scatter(X_time.flatten()[idx], X_inst_freqs.flatten()[idx], alpha=0.1)
 
 def test_cross_spectrum():
     a = np.array([1j, 1+3j])
