@@ -86,5 +86,5 @@ Currently it's alpha. I'm happy to extract it from some other project into a sep
 
 ## About
 
-- author: Bohumír Zámečník
-- license: MIT
+- Author: Bohumír Zámečník ([@bzamecnik](http://twitter.com/bzamecnik))
+- License: MIT
