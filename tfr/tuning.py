@@ -37,15 +37,6 @@ def freq_to_pitch(freq, base_freq=440, steps_per_octave=12, octave_ratio=2):
         p = np.log(rel_freq) / np.log(2)
     return p * steps_per_octave
 
-def experiment_errors_12tet_pitches_vs_harmonics():
-    '''Generate pitches uniformly and examine how they are close to harmonics.'''
-    def error(f):
-        return f - round(f)
-    indexes = list(range(0, 12 * 8 + 1))
-    errors = [error(pitch_to_relative_freq(i, steps_per_octave=12)) \
-        for i in indexes]
-    plt.bar(indexes, errors)
-
 def pitch_bin_range(pitch_start=-4*12, pitch_end=5*12 + 8, pitch_step=1, base_freq=440):
     "generates a range of pitch bins and their frequencies"
     # [-48,67) -> [~27.5, 21096.2) Hz

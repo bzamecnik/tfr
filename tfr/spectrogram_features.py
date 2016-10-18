@@ -6,10 +6,10 @@ suitable as features for machine learning.
 import numpy as np
 import os
 
-from spectrogram import create_window, magnitude_spectrum
-from files import load_wav
-from analysis import split_to_blocks
-from reassignment import reassigned_spectrogram, chromagram
+from .spectrogram import create_window, magnitude_spectrum
+from .files import load_wav
+from .analysis import split_to_blocks
+from .reassignment import reassigned_spectrogram, chromagram
 
 def stft_spectrogram(x, w, to_log):
     X = magnitude_spectrum(x * w) ** 2

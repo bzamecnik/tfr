@@ -2,10 +2,10 @@ import os
 import numpy as np
 import scipy
 
-from files import load_wav
-from spectrogram import real_half, create_window
-from analysis import split_to_blocks
-from tuning import quantize_freqs_to_pitch_bins
+from .files import load_wav
+from .spectrogram import real_half, create_window
+from .analysis import split_to_blocks
+from .tuning import quantize_freqs_to_pitch_bins
 
 def cross_spectrum(spectrumA, spectrumB):
     '''
