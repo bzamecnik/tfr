@@ -12,7 +12,7 @@ clean:
 
 # twine - a tool for uploading packages to PyPI
 install_twine:
-	pip isntall twine
+	pip install twine
 
 build:
 	python setup.py sdist
@@ -20,7 +20,7 @@ build:
 
 # PyPI production
 pypi_register:
-	twine tfr-*.whl
+	twine dist/tfr-*.whl
 
 publish:
 	twine upload dist/*
