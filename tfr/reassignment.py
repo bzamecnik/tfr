@@ -155,20 +155,6 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
         X_chromagram = db_scale(X_chromagram)
     return X_chromagram
 
-def test_cross_spectrum():
-    a = np.array([1j, 1+3j])
-    b = np.array([2, 4j])
-    c = np.array([-2j, 12+4j])
-    assert_array_equals(cross_spectrum(a, b), c)
-
-def test_shifted_amplitude_pair():
-    actual = shifted_amplitude_pair(np.array([1,2,3]))
-    assert_array_equals(actual[0], np.array([0, 1, 2]))
-    assert_array_equals(actual[1], np.array([1, 2, 3]))
-
-def assert_array_equals(a, b):
-    assert (a == b).all()
-
 if __name__ == '__main__':
     import sys
     process_spectrogram(filename=sys.argv[1], block_size=2048, hop_size=512)

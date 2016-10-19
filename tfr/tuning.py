@@ -47,24 +47,3 @@ def pitch_bin_range(pitch_start=-4*12, pitch_end=5*12 + 8, pitch_step=1, base_fr
 def quantize_freqs_to_pitch_bins(freqs, bin_division=1, freq_to_pitch=freq_to_pitch):
     "quantizes frequencies to nearest bins (with optional division of bins)"
     return np.round(freq_to_pitch(freqs) * bin_division) / bin_division
-
-if __name__ == '__main__':
-
-    assert 1. == pitch_to_relative_freq(0., steps_per_octave=1)
-    assert 2. == pitch_to_relative_freq(1., steps_per_octave=1)
-    assert 4. == pitch_to_relative_freq(2., steps_per_octave=1)
-    assert 0.5 == pitch_to_relative_freq(-1., steps_per_octave=1)
-
-    assert 1. == pitch_to_relative_freq(0., steps_per_octave=12)
-    assert 2. == pitch_to_relative_freq(12., steps_per_octave=12)
-    assert 4. == pitch_to_relative_freq(24., steps_per_octave=12)
-    assert 0.5 == pitch_to_relative_freq(-12., steps_per_octave=12)
-
-    assert 440. == pitch_to_freq(0.)
-    assert 880. == pitch_to_freq(12.)
-    assert 1760. == pitch_to_freq(24.)
-    assert 220. == pitch_to_freq(-12.)
-
-    assert abs(466.1637615180899 - pitch_to_freq(1.)) < 1e-10
-    assert abs(415.3046975799451 - pitch_to_freq(-1.)) < 1e-10
-    assert abs(1318.5102276514797 - pitch_to_freq(12 + 7)) < 1e-10
