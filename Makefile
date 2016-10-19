@@ -1,3 +1,6 @@
+test:
+	nosetests
+
 install:
 	pip install tfr
 
