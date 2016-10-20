@@ -23,7 +23,8 @@ def shift_right(values):
     zeros.
     TODO: use np.roll()
     '''
-    return np.hstack([np.zeros((values.shape[0],1)), values[..., :-1]])
+    # TODO: this fails for 1D input array!
+    return np.hstack([np.zeros((values.shape[0], 1)), values[..., :-1]])
 
 def shifted_amplitude_pair(amplitudes):
     '''
