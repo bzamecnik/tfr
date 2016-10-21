@@ -13,6 +13,7 @@ setup(name='tfr',
          'numpy',
          'scikit-learn',
          'scipy',
+         'soundfile',
       ],
       # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
