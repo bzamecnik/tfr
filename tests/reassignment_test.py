@@ -3,7 +3,7 @@ import numpy as np
 from tfr.analysis import split_to_blocks
 from tfr.spectrogram import create_window
 from tfr.reassignment import chromagram, shifted_amplitude_pair
-from tfr.tuning import pitch_to_freq
+from tfr.tuning import Tuning
 
 def test_shifted_amplitude_pair():
     actual = shifted_amplitude_pair(np.array([[1, 2, 3]]))
@@ -12,7 +12,7 @@ def test_shifted_amplitude_pair():
 
 def test_chromagram_on_single_tone_should_have_peak_at_that_tone():
     pitch = 12 + 7 # G5
-    f = pitch_to_freq(pitch)
+    f = Tuning().pitch_to_freq(pitch)
     fs = 44100
     x = sine(sample_time(0, 1, fs=fs), freq=f)
     block_size = 4096

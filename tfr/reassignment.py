@@ -4,7 +4,7 @@ import soundfile as sf
 
 from .spectrogram import real_half, create_window
 from .analysis import split_to_blocks, to_mono
-from .tuning import quantize_freqs_to_pitch_bins
+from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
 
 def cross_spectrum(spectrumA, spectrumB):
@@ -144,7 +144,8 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     X_mag = abs(X_cross_time) / n_freqs
     weights = real_half(X_mag).flatten()
     eps = np.finfo(np.float32).eps
-    pitch_bins = quantize_freqs_to_pitch_bins(np.maximum(fs * real_half(X_inst_freqs), eps), bin_division=bin_division).flatten()
+    pitch_quantizer = PitchQuantizer(Tuning(), bin_division=bin_division)
+    pitch_bins = pitch_quantizer.quantize(np.maximum(fs * real_half(X_inst_freqs), eps)).flatten()
     X_chromagram = np.histogram2d(
         np.repeat(np.arange(n_blocks), n_freqs / 2),
         pitch_bins,
@@ -156,6 +157,15 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     if to_log:
         X_chromagram = db_scale(X_chromagram)
     return X_chromagram
+
+
+# unused - range of bins for the chromagram
+def pitch_bin_range(pitch_start, pitch_end, tuning):
+    "generates a range of pitch bins and their frequencies"
+    # eg. [-48,67) -> [~27.5, 21096.2) Hz
+    pitch_range = np.arange(pitch_start, pitch_end)
+    bin_center_freqs = np.array([tuning.pitch_to_freq(f) for f in pitch_range])
+    return pitch_range, bin_center_freqs
 
 if __name__ == '__main__':
     import sys
