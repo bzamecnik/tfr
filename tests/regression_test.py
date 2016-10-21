@@ -21,4 +21,5 @@ def assert_spectrogram_is_ok(spectrogram_type):
         spectrogram_type=spectrogram_type, to_log=True)
     npz_file = os.path.join(DATA_DIR, 'she_brings_to_me_%s.npz' % spectrogram_type)
     X_expected = np.load(npz_file)['arr_0']
+    print('spectrogram [%s]: max abs error' % spectrogram_type, abs(X - X_expected).max())
     assert np.allclose(X, X_expected)
