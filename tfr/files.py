@@ -5,7 +5,7 @@ def normalize(samples):
     max_value = np.max(np.abs(samples))
     return samples / max_value if max_value != 0 else samples
 
-def save_wav(samples, filename, fs=44100, should_normalize=False, factor=((2**15))-1):
+def save_wav(samples, filename, fs=44100, should_normalize=False, factor=((2**15))):
     '''
     Saves samples in given sampling frequency to a WAV file.
     Samples are assumed to be in the [-1; 1] range and converted
