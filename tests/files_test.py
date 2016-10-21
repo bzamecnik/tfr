@@ -8,6 +8,7 @@ import tempfile
 
 import tfr.files
 
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
 def test_array_should_be_saved_to_a_file():
     fs = 1000
@@ -44,6 +45,16 @@ def test_read_write_soundfile():
     quantization_error = 2 ** (-15)
     print('[soundfile] max absolute error:', abs(y-x).max())
     assert np.allclose(x, y, atol=quantization_error)
+
+
+def test_reading_is_same_soundfile_wavfile():
+    audio_file = os.path.join(DATA_DIR, 'she_brings_to_me.wav')
+    x_sf, fs_sf = sf.read(audio_file)
+    x_wf, fs_wf = tfr.files.load_wav(audio_file, mono_mix=False)
+    assert fs_sf == fs_wf
+    quantization_error = 2 ** (-15)
+    print('read soundfile/wavfile: max abs error', abs(x_sf - x_wf).max())
+    assert np.allclose(x_sf, x_wf, atol=quantization_error)
 
 
 def sine_wave(duration, fs):
