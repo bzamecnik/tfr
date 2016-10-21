@@ -2,11 +2,11 @@
 Example usage:
 
 import matplotlib.pyplot as plt
-from files import load_wav
+import soundfile as sf
 from analysis import split_to_blocks
 
 def analyze_mean_energy(file, block_size=1024):
-    x, fs = load_wav(file)
+    x, fs = sf.read(file)
     blocks, t = split_to_blocks(x, block_size)
     y = mean_energy(blocks)
     plt.semilogy(t, y)

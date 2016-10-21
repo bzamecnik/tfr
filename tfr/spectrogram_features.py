@@ -5,10 +5,10 @@ suitable as features for machine learning.
 
 import numpy as np
 import os
+import soundfile as sf
 
 from .spectrogram import create_window, magnitude_spectrum
-from .files import load_wav
-from .analysis import split_to_blocks
+from .analysis import split_to_blocks, to_mono
 from .reassignment import reassigned_spectrogram, chromagram
 
 def stft_spectrogram(x, w, to_log):
@@ -19,7 +19,8 @@ def stft_spectrogram(x, w, to_log):
     return X
 
 def spectrogram_features(song, fs, block_size, hop_size, spectrogram_type, to_log=True):
-    x, times = split_to_blocks(song, block_size, hop_size=hop_size)
+    song_mono = to_mono(song)
+    x, times = split_to_blocks(song_mono, block_size, hop_size=hop_size)
     w = create_window(block_size)
 
     if spectrogram_type == 'stft':
@@ -33,7 +34,7 @@ def spectrogram_features(song, fs, block_size, hop_size, spectrogram_type, to_lo
     return X
 
 def spectrogram_features_to_file(input_filename, output_filename, block_size, hop_size, spectrogram_type, to_log=True):
-    song, fs = load_wav(input_filename)
+    song, fs = sf.read(input_filename)
     X = spectrogram_features(song, fs, block_size, hop_size, spectrogram_type, to_log)
     np.savez_compressed(output_filename, X)
     # scipy.misc.imsave(output_filename.replace('.npz', '.png'), X.T[::-1])

@@ -1,9 +1,9 @@
 import os
 import numpy as np
+import soundfile as sf
 
-from .files import load_wav
 from .spectrogram import real_half, create_window
-from .analysis import split_to_blocks
+from .analysis import split_to_blocks, to_mono
 from .tuning import quantize_freqs_to_pitch_bins
 from .plots import save_raw_spectrogram_bitmap
 
@@ -58,8 +58,9 @@ def estimate_group_delays(crossFreqSpectrum):
     return 0.5 - arg(crossFreqSpectrum)
 
 def open_file(filename, block_size, hop_size):
-    song, fs = load_wav(filename)
-    x, times = split_to_blocks(song, block_size, hop_size=hop_size)
+    song, fs = sf.read(filename)
+    song_mono = to_mono(song)
+    x, times = split_to_blocks(song_mono, block_size, hop_size=hop_size)
     return x, times, fs
 
 def compute_spectra(x, w):

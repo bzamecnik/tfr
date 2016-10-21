@@ -30,7 +30,7 @@ pip install -e tfr
 ### Extract a chromagram from an audio file
 
 ```
-from tfr.analysis import split_to_blocks
+from tfr.analysis import split_to_blocks, to_mono
 from tfr.reassignment import chromagram
 from tfr.spectrogram import create_window
 import soundfile as sf
@@ -38,7 +38,7 @@ import soundfile as sf
 x, fs = sf.read('audio.flac')
 block_size = 4096
 window = create_window(block_size)
-x_blocks, x_times = split_to_blocks(x, block_size=block_size, hop_size=2048, fs=fs)
+x_blocks, x_times = split_to_blocks(to_mono(x), block_size=block_size, hop_size=2048, fs=fs)
 
 # input:
 #   - blocks of mono audio signal normalized to [0.0, 1.0]
@@ -75,9 +75,10 @@ In order to extract chromagram features within a sklearn pipeline, we can use `C
 import soundfile as sf
 x, fs = sf.read('audio.flac')
 
+from tfr.analysis import to_mono
 from tfr.preprocessing import ChromagramTransformer
 ct = ChromagramTransformer(sample_rate=fs)
-x_chromagram = ct.transform(x)
+x_chromagram = ct.transform(to_mono(x))
 
 # output:
 #  - shape: (block_count, bin_count)

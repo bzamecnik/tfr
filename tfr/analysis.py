@@ -26,3 +26,9 @@ def split_to_blocks(x, block_size=1024, hop_size=None, fs=44100):
 
 def split_block_times(N, fs, hop_size):
     return np.arange(0, N/fs, hop_size/fs)
+
+def to_mono(samples):
+    if samples.ndim == 1:
+        return samples
+    else:
+        return samples.mean(axis=-1)
