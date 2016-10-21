@@ -7,15 +7,10 @@ import numpy as np
 import os
 import soundfile as sf
 
-from .spectrogram import create_window, db_scale, magnitude_spectrum
+from .spectrogram import create_window, stft_spectrogram
 from .analysis import split_to_blocks, to_mono
 from .reassignment import reassigned_spectrogram, chromagram
 
-def stft_spectrogram(x, w, to_log):
-    X = magnitude_spectrum(x * w) ** 2
-    if to_log:
-        X = db_scale(X)
-    return X
 
 def spectrogram_features(song, fs, block_size, hop_size, spectrogram_type, to_log=True):
     song_mono = to_mono(song)

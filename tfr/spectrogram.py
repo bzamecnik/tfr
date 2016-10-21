@@ -49,9 +49,7 @@ def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
     song_mono = to_mono(song)
     x, times = split_to_blocks(song_mono, block_size, hop_size=hop_size)
     w = create_window(block_size)
-    X = magnitude_spectrum(x * w) ** 2
-    if to_log:
-        X = db_scale(X)
+    X = stft_spectrogram(x, w, to_log)
     return X, x, times
 
 def fftfreqs(block_size, fs):
@@ -71,3 +69,9 @@ def db_scale(magnitude_spectrum):
     # threshold = -np.log10(min_amplitude)
     # return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)
     return 20 * np.log10(np.maximum(1e-6, magnitude_spectrum))
+
+def stft_spectrogram(x, w, to_log):
+    X = magnitude_spectrum(x * w) ** 2
+    if to_log:
+        X = db_scale(X)
+    return X
