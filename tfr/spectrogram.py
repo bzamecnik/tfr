@@ -51,8 +51,7 @@ def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
     w = create_window(block_size)
     X = magnitude_spectrum(x * w) ** 2
     if to_log:
-        # dbFB
-        X = 20 * np.log10(np.maximum(1e-6, X))
+        X = db_scale(X)
     return X, x, times
 
 def fftfreqs(block_size, fs):
@@ -63,3 +62,12 @@ def inverse_spectrum(spectrum, window):
     inverse_spectrum(np.fft.fft(x * window), window) == x
     '''
     return np.real(np.fft.ifft(spectrum)) / window
+
+def db_scale(magnitude_spectrum):
+    """
+    Transform linear magnitude to dbFS (full-scale)
+    """
+    # min_amplitude = 1e-6
+    # threshold = -np.log10(min_amplitude)
+    # return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)
+    return 20 * np.log10(np.maximum(1e-6, magnitude_spectrum))

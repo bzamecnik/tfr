@@ -2,7 +2,7 @@ import os
 import numpy as np
 import soundfile as sf
 
-from .spectrogram import real_half, create_window
+from .spectrogram import db_scale, real_half, create_window
 from .analysis import split_to_blocks, to_mono
 from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
@@ -72,12 +72,6 @@ def compute_spectra(x, w):
     X_inst_freqs = estimate_instant_freqs(X_cross_time)
     X_group_delays = estimate_group_delays(X_cross_freq)
     return X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays
-
-def db_scale(magnitude_spectrum):
-    # min_amplitude = 1e-6
-    # threshold = -np.log10(min_amplitude)
-    # return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)
-    return 20 * np.log10(np.maximum(1e-6, magnitude_spectrum))
 
 def requantize_f_spectrogram(X_cross, X_instfreqs, to_log=True):
     '''Only requantize by frequency'''
