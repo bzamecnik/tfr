@@ -2,13 +2,11 @@ import numpy as np
 
 from tfr.analysis import split_to_blocks
 from tfr.spectrogram import create_window
-from tfr.reassignment import chromagram, shifted_amplitude_pair
+from tfr.reassignment import chromagram, shift_right
 from tfr.tuning import Tuning
 
-def test_shifted_amplitude_pair():
-    actual = shifted_amplitude_pair(np.array([[1, 2, 3]]))
-    assert np.allclose(actual[0], np.array([0, 1, 2]))
-    assert np.allclose(actual[1], np.array([1, 2, 3]))
+def test_shift_right():
+    assert np.allclose(shift_right(np.array([[1, 2, 3]])), np.array([0, 1, 2]))
 
 def test_chromagram_on_single_tone_should_have_peak_at_that_tone():
     pitch = 12 + 7 # G5

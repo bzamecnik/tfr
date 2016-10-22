@@ -26,18 +26,6 @@ def shift_right(values):
     # TODO: this fails for 1D input array!
     return np.hstack([np.zeros((values.shape[0], 1)), values[..., :-1]])
 
-def shifted_amplitude_pair(amplitudes):
-    '''
-    Fakes looking at the previous frame shifted by one sample.
-    In order to work only with one frame of size N and not N + 1, we fill the
-    missing value with zero. This should not introduce a large error, since the
-    borders of the amplitude frame will go to zero anyway due to applying a
-    window function in the STFT tranform.
-    Returns: (previous amplitudes, current amplitudes)
-    '''
-    prevAmplitudes = shift_right(amplitudes)
-    return prevAmplitudes, amplitudes
-
 def arg(crossSpectrum):
     return np.mod(np.angle(crossSpectrum) / (2 * np.pi), 1.0)
 
@@ -65,6 +53,11 @@ def open_file(filename, block_size, hop_size):
 
 def compute_spectra(x, w):
     X = np.fft.fft(x * w)
+    # This fakes looking at the previous frame shifted by one sample.
+    # In order to work only with one frame of size N and not N + 1, we fill the
+    # missing value with zero. This should not introduce a large error, since the
+    # borders of the amplitude frame will go to zero anyway due to applying a
+    # window function in the STFT tranform.
     X_prev_time = np.fft.fft(shift_right(x) * w)
     X_prev_freq = shift_right(X)
     X_cross_time = cross_spectrum(X, X_prev_time)
