@@ -1,11 +1,24 @@
 import numpy as np
 import math
-import os.path
 import scipy
 import soundfile as sf
 
 from .features import mean_power
 from .analysis import split_to_blocks, to_mono
+
+def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
+    song, fs = sf.read(filename)
+    song_mono = to_mono(song)
+    x, times = split_to_blocks(song_mono, block_size, hop_size=hop_size)
+    w = create_window(block_size)
+    X = stft_spectrogram(x, w, to_log)
+    return X, x, times
+
+def stft_spectrogram(x, w, to_log):
+    X = magnitude_spectrum(x * w) ** 2
+    if to_log:
+        X = db_scale(X)
+    return X
 
 def magnitude_spectrum(x):
     '''
@@ -22,44 +35,10 @@ def real_half(X):
     N = X.shape[1]
     return np.hstack([0.5 *  X[:, :1], X[:, 1:N//2]])
 
-def energy_weighted_spectrum(x):
-    N = x.shape[-1]
-    X = np.fft.fft(x)
-    # np.allclose(energy(abs(X) / math.sqrt(N)), energy(x))
-    # np.allclose(energy(abs(X[:N//2]) / math.sqrt(N//2)), energy(x))
-    return abs(X) / math.sqrt(N)
-
-def normalize_mean_power(x):
-    '''
-    Normalize a vector so that it has energy equal to its length,
-    ie. mean power equal to 1.0.
-    Useful to normalize the FFT window.
-
-    np.allclose(normalize_window(x), len(x))
-    '''
-    return x / mean_power(x)
-
 def create_window(size):
     w = scipy.hanning(size)
     w = w / mean_power(w)
     return w
-
-def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
-    song, fs = sf.read(filename)
-    song_mono = to_mono(song)
-    x, times = split_to_blocks(song_mono, block_size, hop_size=hop_size)
-    w = create_window(block_size)
-    X = stft_spectrogram(x, w, to_log)
-    return X, x, times
-
-def fftfreqs(block_size, fs):
-    return np.fft.fftfreq(block_size, 1/fs)[:block_size // 2]
-
-def inverse_spectrum(spectrum, window):
-    '''
-    inverse_spectrum(np.fft.fft(x * window), window) == x
-    '''
-    return np.real(np.fft.ifft(spectrum)) / window
 
 def db_scale(magnitude_spectrum):
     """
@@ -70,8 +49,20 @@ def db_scale(magnitude_spectrum):
     # return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)
     return 20 * np.log10(np.maximum(1e-6, magnitude_spectrum))
 
-def stft_spectrogram(x, w, to_log):
-    X = magnitude_spectrum(x * w) ** 2
-    if to_log:
-        X = db_scale(X)
-    return X
+# -- extras --
+
+def energy_weighted_spectrum(x):
+    N = x.shape[-1]
+    X = np.fft.fft(x)
+    # np.allclose(energy(abs(X) / math.sqrt(N)), energy(x))
+    # np.allclose(energy(abs(X[:N//2]) / math.sqrt(N//2)), energy(x))
+    return abs(X) / math.sqrt(N)
+
+def fftfreqs(block_size, fs):
+    return np.fft.fftfreq(block_size, 1/fs)[:block_size // 2]
+
+def inverse_spectrum(spectrum, window):
+    '''
+    inverse_spectrum(np.fft.fft(x * window), window) == x
+    '''
+    return np.real(np.fft.ifft(spectrum)) / window
