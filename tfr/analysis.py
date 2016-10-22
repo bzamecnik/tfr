@@ -1,6 +1,13 @@
-import numpy as np
 import math
+import numpy as np
+import soundfile as sf
 
+def read_blocks(filename, block_size, hop_size=None, mono_mix=True):
+    song, fs = sf.read(filename)
+    if mono_mix:
+        song = to_mono(song)
+    x, times = split_to_blocks(song, block_size, hop_size=hop_size)
+    return x, times, fs
 
 def split_to_blocks(x, block_size=1024, hop_size=None, fs=44100):
     '''

@@ -1,9 +1,8 @@
 import os
 import numpy as np
-import soundfile as sf
 
 from .spectrogram import db_scale, real_half, create_window
-from .analysis import split_to_blocks, to_mono
+from .analysis import read_blocks
 from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
 
@@ -44,12 +43,6 @@ def estimate_instant_freqs(crossTimeSpectrum):
 
 def estimate_group_delays(crossFreqSpectrum):
     return 0.5 - arg(crossFreqSpectrum)
-
-def open_file(filename, block_size, hop_size):
-    song, fs = sf.read(filename)
-    song_mono = to_mono(song)
-    x, times = split_to_blocks(song_mono, block_size, hop_size=hop_size)
-    return x, times, fs
 
 def compute_spectra(x, w):
     X = np.fft.fft(x * w)
@@ -96,7 +89,7 @@ def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, f
     return counts, x_edges, y_edges
 
 def process_spectrogram(filename, block_size, hop_size):
-    x, times, fs = open_file(filename, block_size, hop_size)
+    x, times, fs = read_blocks(filename, block_size, hop_size, mono_mix=True)
     w = create_window(block_size)
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
 

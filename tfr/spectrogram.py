@@ -1,19 +1,16 @@
 import numpy as np
 import math
 import scipy
-import soundfile as sf
 
 from .features import mean_power
-from .analysis import split_to_blocks, to_mono
+from .analysis import read_blocks
 
 def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
     """
     Computes an STFT magnitude power spectrogram from an audio file.
     Returns: spectrogram, audio_samples, block_times
     """
-    song, fs = sf.read(filename)
-    song_mono = to_mono(song)
-    x, times = split_to_blocks(song_mono, block_size, hop_size=hop_size)
+    x, times, fs = read_blocks(filename, block_size, hop_size, mono_mix=True)
     w = create_window(block_size)
     X = stft_spectrogram(x, w, to_log)
     return X, x, times

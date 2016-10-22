@@ -3,11 +3,10 @@ Example usage:
 
 import matplotlib.pyplot as plt
 import soundfile as sf
-from analysis import split_to_blocks
+from analysis import read_blocks
 
 def analyze_mean_energy(file, block_size=1024):
-    x, fs = sf.read(file)
-    blocks, t = split_to_blocks(x, block_size)
+    blocks, t, fs = read_blocks(x, block_size)
     y = mean_energy(blocks)
     plt.semilogy(t, y)
     plt.ylim(0, 1)

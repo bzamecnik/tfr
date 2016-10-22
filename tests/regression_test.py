@@ -16,8 +16,8 @@ def test_spectrograms():
         yield assert_spectrogram_is_ok, spectrogram_type
 
 def assert_spectrogram_is_ok(spectrogram_type):
-    x, fs = sf.read(os.path.join(DATA_DIR, 'she_brings_to_me.wav'))
-    X = spectrogram_features(x, fs, block_size=4096, hop_size=2048,
+    audio_file = os.path.join(DATA_DIR, 'she_brings_to_me.wav')
+    X = spectrogram_features(audio_file, block_size=4096, hop_size=2048,
         spectrogram_type=spectrogram_type, to_log=True)
     npz_file = os.path.join(DATA_DIR, 'she_brings_to_me_%s.npz' % spectrogram_type)
     X_expected = np.load(npz_file)['arr_0']
