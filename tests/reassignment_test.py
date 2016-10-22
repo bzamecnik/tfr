@@ -2,7 +2,7 @@ import numpy as np
 
 from tfr.analysis import split_to_blocks
 from tfr.spectrogram import create_window
-from tfr.reassignment import chromagram, shift_right
+from tfr.reassignment import chromagram, shift_right, arg
 from tfr.tuning import Tuning
 
 def test_shift_right():
@@ -25,6 +25,15 @@ def test_chromagram_on_single_tone_should_have_peak_at_that_tone():
     assert x_chromagram.shape == (22, 115)
     assert max_bin_actual == max_bin_expected
 
+def test_arg():
+    values = np.array([-5.-1.j, -1.-5.j,  2.-2.j,  3.+4.j,  2.+0.j,  2.-5.j, -3.-3.j,
+       -3.+1.j, -2.-5.j,  0.+2.j])
+    args = arg(values)
+    expected_args=np.array([0.53141648, 0.71858352, 0.875 , 0.14758362, 0.,
+        0.81055947, 0.625 , 0.44879181, 0.68944053, 0.25])
+    assert np.allclose(args, expected_args)
+
+# --- helper functions ---
 
 def sample_time(since, until, fs=44100.):
     '''
