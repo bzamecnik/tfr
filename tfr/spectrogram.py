@@ -7,6 +7,10 @@ from .features import mean_power
 from .analysis import split_to_blocks, to_mono
 
 def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
+    """
+    Computes an STFT magnitude power spectrogram from an audio file.
+    Returns: spectrogram, audio_samples, block_times
+    """
     song, fs = sf.read(filename)
     song_mono = to_mono(song)
     x, times = split_to_blocks(song_mono, block_size, hop_size=hop_size)
@@ -15,6 +19,15 @@ def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
     return X, x, times
 
 def stft_spectrogram(x, w, to_log):
+    """
+    Computes an STFT magnitude power spectrogram from an array of samples
+    already cut to blocks.
+    Input:
+    - x - time-domain samples - array of shape (blocks, block_size)
+    - w - window - array of shape (block_size)
+    - to_log - indicates whether to scale the
+    Output: spectrogram
+    """
     X = magnitude_spectrum(x * w) ** 2
     if to_log:
         X = db_scale(X)
@@ -32,17 +45,26 @@ def magnitude_spectrum(x):
     return abs(Xr) / N
 
 def real_half(X):
+    """
+    Real half of the spectrum. The DC term shared for positive and negative
+    frequencies is halved.
+    """
     N = X.shape[1]
     return np.hstack([0.5 *  X[:, :1], X[:, 1:N//2]])
 
 def create_window(size):
+    """
+    A normalized Hanning window of given size. Useful for analyzing sinusoidal
+    signals. It's normalized so that it has energy equal to its length, and mean
+    power equal to 1.0.
+    """
     w = scipy.hanning(size)
     w = w / mean_power(w)
     return w
 
 def db_scale(magnitude_spectrum):
     """
-    Transform linear magnitude to dbFS (full-scale)
+    Transform linear magnitude to dbFS (full-scale).
     """
     # min_amplitude = 1e-6
     # threshold = -np.log10(min_amplitude)
