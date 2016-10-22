@@ -76,7 +76,7 @@ import soundfile as sf
 x, fs = sf.read('audio.flac')
 
 from tfr.analysis import to_mono
-from tfr.preprocessing import ChromagramTransformer
+from tfr.sklearn import ChromagramTransformer
 ct = ChromagramTransformer(sample_rate=fs)
 x_chromagram = ct.transform(to_mono(x))
 
