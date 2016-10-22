@@ -93,3 +93,13 @@ Currently it's alpha. I'm happy to extract it from some other project into a sep
 
 - Author: Bohumír Zámečník ([@bzamecnik](http://twitter.com/bzamecnik))
 - License: MIT
+
+## Literature
+
+- [A Unified Theory of Time-Frequency Reassignment](https://arxiv.org/abs/0903.3080) - Kelly R. Fitz, Sean A. Fulop, Digital Signal Processing 30 September 2005
+- [Algorithms for computing the time-corrected instantaneous frequency (reassigned) spectrogram, with applications](http://acousticslab.org/learnmoresra/files/fulopfitz2006jasa119.pdf) - Sean A. Fulop, Kelly Fitz, Journal of Acoustical Society of America, Jan 2006
+- [Time Frequency Reassignment: A Review and Analysis](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.4.1053&rep=rep1&type=pdf) - Stephen W. Hainsworth, Malcolm D. Macleod,
+Technical Report, Cambridge University Engineering Dept.
+- [Improving the Readability of Time-Frequency and Time-Scale Representations by the Reassignment Method](http://perso.ens-lyon.fr/patrick.flandrin/IEEE_SP1995.pdf) - Francois Auger, Patrick Flandrin, IEEE Transactions on Signal Processing, vol. 43, no. 5, May 1995
+- [Time–frequency reassignment: from principles to algorithms](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.331.5416&rep=rep1&type=pdf) - P. Flandrin, F. Auger, E. Chassande-Mottin, CRC Press 2003
+- [Time-frequency toolbox for Matlab, user’s guide and reference guide](http://iut-saint- nazaire.univ-nantes.fr/~auger/tftb.html) - F.Auger, P.Flandrin, P.Goncalves, O.Lemoine
