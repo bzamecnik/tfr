@@ -35,12 +35,18 @@ def magnitude_spectrum(x):
     Magnitude spectrum scaled so that each bin corresponds to the original sine
     amplitude. Only the real part of the spectrum is returned.
     x - 1D sampled signal (possibly already windowed)
+
+    For signal in range [-1., 1.] the output range is [0., 1.].
+
+    The energy is not preserved, it's scaled down
+    (energy_out = energy_in / (N//2)).
     '''
     X = np.fft.fft(x)
     Xr = real_half(X)
     N = Xr.shape[-1]
     return abs(Xr) / N
 
+# TODO: we should probably multiply the whole result by 2, to conserve energy
 def real_half(X):
     """
     Real half of the spectrum. The DC term shared for positive and negative
@@ -62,6 +68,8 @@ def create_window(size):
 def db_scale(magnitude_spectrum):
     """
     Transform linear magnitude to dbFS (full-scale).
+
+    For input range [0, 1] the output range is [-120, 0].
     """
     # min_amplitude = 1e-6
     # threshold = -np.log10(min_amplitude)

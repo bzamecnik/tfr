@@ -52,12 +52,17 @@ def estimate_instant_freqs(crossTimeSpectrum):
     return arg(crossTimeSpectrum)
 
 def estimate_group_delays(crossFreqSpectrum):
+    "range: [-0.5, 0.5]"
     return 0.5 - arg(crossFreqSpectrum)
 
 def compute_spectra(x, w):
     """
     This computes all the spectra needed for reassignment as well as estimates
     of instantaneous frequency and group delay.
+
+    Input:
+    - x - an array of time blocks
+    - w - 1D normalized window of the same size as x.shape[0]
     """
     # normal spectrum (with a window)
     X = np.fft.fft(x * w)
@@ -141,6 +146,8 @@ def reassigned_spectrogram(x, w, to_log=True):
 
     Only the real half of spectrum is given.
     """
+    # TODO: The computed arrays are symetrical (positive vs. negative freqs).
+    # We should only use one half.
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     X_reassigned_f = requantize_f_spectrogram(X_cross_time, X_inst_freqs, to_log)
     return real_half(X_reassigned_f)
