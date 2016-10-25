@@ -145,7 +145,7 @@ def reassigned_spectrogram(x, w, to_log=True):
     # We should only use one half.
     X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     X_reassigned_f = requantize_f_spectrogram(X_mag, X_inst_freqs, to_log)
-    return positive_freq_magnitudes(X_reassigned_f)
+    return select_positive_freq_fft(X_reassigned_f)
 
 def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     """
