@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-from .spectrogram import db_scale, real_half, create_window
+from .spectrogram import db_scale, positive_freq_magnitudes, create_window
 from .analysis import read_blocks
 from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
@@ -127,9 +127,9 @@ def process_spectrogram(filename, block_size, hop_size):
     X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights)[0]
     X_reassigned_tf = db_scale(X_reassigned_tf ** 2)
     image_filename = os.path.basename(filename).replace('.wav', '.png')
-    save_raw_spectrogram_bitmap('reassigned_f_' + image_filename, real_half(X_reassigned_f))
-    save_raw_spectrogram_bitmap('reassigned_tf_' + image_filename, real_half(X_reassigned_tf))
-    save_raw_spectrogram_bitmap('normal_' + image_filename, real_half(X_magnitudes))
+    save_raw_spectrogram_bitmap('reassigned_f_' + image_filename, positive_freq_magnitudes(X_reassigned_f))
+    save_raw_spectrogram_bitmap('reassigned_tf_' + image_filename, positive_freq_magnitudes(X_reassigned_tf))
+    save_raw_spectrogram_bitmap('normal_' + image_filename, positive_freq_magnitudes(X_magnitudes))
 
 #     X_time = X_group_delays + np.tile(np.arange(X.shape[0]).reshape(-1, 1), X.shape[1])
 #     idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)
@@ -147,7 +147,7 @@ def reassigned_spectrogram(x, w, to_log=True):
     # We should only use one half.
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     X_reassigned_f = requantize_f_spectrogram(X, X_inst_freqs, to_log)
-    return real_half(X_reassigned_f)
+    return positive_freq_magnitudes(X_reassigned_f)
 
 def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     """
@@ -158,12 +158,12 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     n_blocks, n_freqs = X_cross_time.shape
     X_mag = abs(X) / n_freqs
-    weights = real_half(X_mag).flatten()
+    weights = positive_freq_magnitudes(X_mag).flatten()
     eps = np.finfo(np.float32).eps
     pitch_quantizer = PitchQuantizer(Tuning(), bin_division=bin_division)
     # TODO: is it possible to quantize using relative freqs to avoid
     # dependency on the fs parameter?
-    pitch_bins = pitch_quantizer.quantize(np.maximum(fs * real_half(X_inst_freqs), eps)).flatten()
+    pitch_bins = pitch_quantizer.quantize(np.maximum(fs * positive_freq_magnitudes(X_inst_freqs), eps)).flatten()
     X_chromagram = np.histogram2d(
         np.repeat(np.arange(n_blocks), n_freqs / 2),
         pitch_bins,

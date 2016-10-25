@@ -42,18 +42,30 @@ def magnitude_spectrum(x):
     (energy_out = energy_in / (N//2)).
     '''
     X = np.fft.fft(x)
-    Xr = real_half(X)
+    Xr = positive_freq_magnitudes(X)
     N = Xr.shape[-1]
     return abs(Xr) / N
 
-# TODO: we should probably multiply the whole result by 2, to conserve energy
-def real_half(X):
+def select_positive_freq_fft(X):
     """
-    Real half of the spectrum. The DC term shared for positive and negative
-    frequencies is halved.
+    Select the positive frequency part of the spectrum in a spectrogram.
     """
     N = X.shape[1]
-    return np.hstack([0.5 *  X[:, :1], X[:, 1:N//2]])
+    return X[:, :N//2]
+
+# TODO: we should probably multiply the whole result by 2, to conserve energy
+def positive_freq_magnitudes(X):
+    """
+    Select magnitudes from positive-frequency half of the spectrum in a
+    spectrogram. The DC term shared for positive and negative frequencies is
+    halved.
+
+    Note this is not a complete information to reconstruct the full spectrum,
+    since we throw away the bin at the negative Nyquist frequency (index N/2+1).
+    """
+    X_pos = select_positive_freq_fft(X).copy()
+    X_pos[:, 0] *= 0.5
+    return X_pos
 
 def create_window(size):
     """
@@ -86,6 +98,10 @@ def energy_weighted_spectrum(x):
     return abs(X) / math.sqrt(N)
 
 def fftfreqs(block_size, fs):
+    """
+    Positive FFT frequencies from DC (incl.) until Nyquist (excl.).
+    The size of half of the FTT size.
+    """
     return np.fft.fftfreq(block_size, 1/fs)[:block_size // 2]
 
 def inverse_spectrum(spectrum, window):
