@@ -66,6 +66,7 @@ def compute_spectra(x, w):
     """
     # normal spectrum (with a window)
     X = np.fft.fft(x * w)
+    X_mag = abs(X) / X.shape[1]
     # spectrum of signal shifted in time
     # This fakes looking at the previous frame shifted by one sample.
     # In order to work only with one frame of size N and not N + 1, we fill the
@@ -79,16 +80,14 @@ def compute_spectra(x, w):
     X_cross_freq = cross_spectrum(X, X_prev_freq)
     X_inst_freqs = estimate_instant_freqs(X_cross_time)
     X_group_delays = estimate_group_delays(X_cross_freq)
-    return X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays
+    return X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays
 
-def requantize_f_spectrogram(X, X_instfreqs, to_log=True):
+def requantize_f_spectrogram(X_mag, X_inst_freqs, to_log=True):
     """Spectrogram requantized only in frequency"""
-    X_reassigned = np.empty(X.shape)
-    N = X.shape[1]
-    magnitude_spectrum = abs(X) / N
-    weights = magnitude_spectrum
-    for i in range(X.shape[0]):
-        X_reassigned[i, :] = np.histogram(X_instfreqs[i], N, range=(0,1), weights=weights[i])[0]
+    X_reassigned = np.empty(X_mag.shape)
+    N = X_mag.shape[1]
+    for i in range(X_mag.shape[0]):
+        X_reassigned[i, :] = np.histogram(X_inst_freqs[i], N, range=(0,1), weights=X_mag[i])[0]
     X_reassigned = X_reassigned ** 2
     if to_log:
          X_reassigned = db_scale(X_reassigned)
@@ -119,17 +118,15 @@ def process_spectrogram(filename, block_size, hop_size):
     """
     x, times, fs = read_blocks(filename, block_size, hop_size, mono_mix=True)
     w = create_window(block_size)
-    X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
+    X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
 
-    X_reassigned_f = requantize_f_spectrogram(X, X_inst_freqs)
-    X_magnitudes = abs(X) / X.shape[1]
-    weights = X_magnitudes
-    X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights)[0]
+    X_reassigned_f = requantize_f_spectrogram(X_mag, X_inst_freqs)
+    X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, X_mag)[0]
     X_reassigned_tf = db_scale(X_reassigned_tf ** 2)
     image_filename = os.path.basename(filename).replace('.wav', '.png')
     save_raw_spectrogram_bitmap('reassigned_f_' + image_filename, positive_freq_magnitudes(X_reassigned_f))
     save_raw_spectrogram_bitmap('reassigned_tf_' + image_filename, positive_freq_magnitudes(X_reassigned_tf))
-    save_raw_spectrogram_bitmap('normal_' + image_filename, positive_freq_magnitudes(X_magnitudes))
+    save_raw_spectrogram_bitmap('normal_' + image_filename, positive_freq_magnitudes(X_mag))
 
 #     X_time = X_group_delays + np.tile(np.arange(X.shape[0]).reshape(-1, 1), X.shape[1])
 #     idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)
@@ -145,8 +142,8 @@ def reassigned_spectrogram(x, w, to_log=True):
     """
     # TODO: The computed arrays are symetrical (positive vs. negative freqs).
     # We should only use one half.
-    X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
-    X_reassigned_f = requantize_f_spectrogram(X, X_inst_freqs, to_log)
+    X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
+    X_reassigned_f = requantize_f_spectrogram(X_mag, X_inst_freqs, to_log)
     return positive_freq_magnitudes(X_reassigned_f)
 
 def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
@@ -155,9 +152,8 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     requantized to pitch bins (chromagram).
     """
     # TODO: better give frequency range
-    X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
-    n_blocks, n_freqs = X_cross_time.shape
-    X_mag = abs(X) / n_freqs
+    X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
+    n_blocks, n_freqs = X.shape
     weights = positive_freq_magnitudes(X_mag).flatten()
     eps = np.finfo(np.float32).eps
     pitch_quantizer = PitchQuantizer(Tuning(), bin_division=bin_division)
