@@ -31,9 +31,8 @@ class ChromagramTransformer(BaseEstimator, TransformerMixin):
             to_log=True,
             bin_range=self.bin_range,
             bin_division=self.bin_division)
-        # map from raw dB [-120.0, bin_count] to [0.0, 1.0]
-        bin_count = X_blocks.shape[1]
-        X_chromagram = (X_chromagram + 120) / (120 + bin_count)
+        # map from raw dB [-120.0, 0] to [0.0, 1.0]
+        X_chromagram = (X_chromagram / 120) + 1
         return X_chromagram
 
     def fit(self, X, y=None, **fit_params):
