@@ -102,22 +102,23 @@ def requantize_f_spectrogram(X_mag, X_inst_freqs, to_log=True, positive_only=Tru
     X_reassigned = np.empty(X_mag.shape)
     N = X_mag.shape[1]
     # range of normalized frequencies
-    value_range = (0, 0.5) if positive_only else (0, 1)
+    freq_range = (0, 0.5) if positive_only else (0, 1)
     for i in range(X_mag.shape[0]):
-        X_reassigned[i, :] = np.histogram(X_inst_freqs[i], N, range=value_range, weights=X_mag[i])[0]
+        X_reassigned[i, :] = np.histogram(X_inst_freqs[i], N, range=freq_range, weights=X_mag[i])[0]
     X_reassigned = X_reassigned ** 2
     if to_log:
         X_reassigned = db_scale(X_reassigned)
     return X_reassigned
 
-def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights=None):
+def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights=None, positive_only=True):
     """Spectrogram requantized both in frequency and time"""
     block_duration = block_size / fs
     block_center_time = block_duration / 2
     X_time = np.tile(times + block_center_time, (X_group_delays.shape[1], 1)).T \
         + X_group_delays * block_duration
     time_range = (times[0], times[-1] + block_duration)
-    freq_range = (0, 1)
+    # range of normalized frequencies
+    freq_range = (0, 0.5) if positive_only else (0, 1)
     bins = X_inst_freqs.shape
 
     counts, x_edges, y_edges = np.histogram2d(
