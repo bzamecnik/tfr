@@ -126,6 +126,7 @@ def process_spectrogram(filename, block_size, hop_size):
     # magnitude_spectrum = abs(X_cross_time) / N
     # weights = db_scale(magnitude_spectrum)
     X_magnitudes = abs(X_cross_time) / X.shape[1]
+    # TODO: is is correct to use magnitudes from X_cross_time instead of X???
     weights = X_magnitudes
     X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights)[0]
     X_reassigned_tf = db_scale(X_reassigned_tf ** 2)
@@ -161,6 +162,7 @@ def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
     X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     n_blocks, n_freqs = X_cross_time.shape
     X_mag = abs(X_cross_time) / n_freqs
+    # TODO: is is correct to use magnitudes from X_cross_time instead of X???
     weights = real_half(X_mag).flatten()
     eps = np.finfo(np.float32).eps
     pitch_quantizer = PitchQuantizer(Tuning(), bin_division=bin_division)
