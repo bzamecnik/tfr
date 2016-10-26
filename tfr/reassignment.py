@@ -141,10 +141,11 @@ def process_spectrogram(filename, block_size, hop_size):
     X_reassigned_f = requantize_f_spectrogram(X_mag, X_inst_freqs)
     X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, X_mag)[0]
     X_reassigned_tf = db_scale(X_reassigned_tf ** 2)
+    X_stft = db_scale(X_mag ** 2)
     image_filename = os.path.basename(filename).replace('.wav', '.png')
     save_raw_spectrogram_bitmap('reassigned_f_' + image_filename, X_reassigned_f)
     save_raw_spectrogram_bitmap('reassigned_tf_' + image_filename, X_reassigned_tf)
-    save_raw_spectrogram_bitmap('normal_' + image_filename, X_mag)
+    save_raw_spectrogram_bitmap('normal_' + image_filename, X_stft)
 
 #     X_time = X_group_delays + np.tile(np.arange(X.shape[0]).reshape(-1, 1), X.shape[1])
 #     idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)
