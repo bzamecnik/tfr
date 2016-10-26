@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 from .spectrogram import db_scale, positive_freq_magnitudes, create_window, \
-    select_positive_freq_fft
+    select_positive_freq_fft, fftfreqs
 from .analysis import read_blocks
 from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
@@ -92,6 +92,7 @@ def compute_spectra(x, w, positive_only=True):
 
     return X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays
 
+# deprecated
 def requantize_f_spectrogram(X_mag, X_inst_freqs, to_log=True, positive_only=True):
     """
     Spectrogram requantized only in frequency.
@@ -110,25 +111,38 @@ def requantize_f_spectrogram(X_mag, X_inst_freqs, to_log=True, positive_only=Tru
         X_reassigned = db_scale(X_reassigned)
     return X_reassigned
 
-def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, weights=None, positive_only=True):
-    """Spectrogram requantized both in frequency and time"""
+def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size,
+    output_frame_size, fs, weights=None, positive_only=True):
+    """
+    Spectrogram requantized both in frequency and time.
+
+    Note it is quantized into non-overlapping output time frames which may be
+    of a different size than input time frames.
+    """
     block_duration = block_size / fs
     block_center_time = block_duration / 2
-    X_time = np.tile(times + block_center_time, (X_group_delays.shape[1], 1)).T \
-        + X_group_delays * block_duration
-    time_range = (times[0], times[-1] + block_duration)
+    # group delays are in range [-0.5, 0.5] - relative coordinates within the
+    # block where 0.0 is the block center
+    freq_bin_count = X_inst_freqs.shape[1]
+    X_time = np.tile(times + block_center_time + np.finfo(np.float32).eps, (freq_bin_count, 1)).T
+    if X_group_delays is not None:
+        X_time += X_group_delays * block_duration
+    end_input_time = times[-1] + block_duration
+    output_frame_count = (end_input_time * fs) // output_frame_size
+    time_range = (0, output_frame_count * output_frame_size / fs)
     # range of normalized frequencies
     freq_range = (0, 0.5) if positive_only else (0, 1)
-    bins = X_inst_freqs.shape
 
+    output_shape = (output_frame_count, freq_bin_count)
     counts, x_edges, y_edges = np.histogram2d(
         X_time.flatten(), X_inst_freqs.flatten(),
         weights=weights.flatten(),
         range=(time_range, freq_range),
-        bins=bins)
+        bins=output_shape)
+
     return counts, x_edges, y_edges
 
-def process_spectrogram(filename, block_size, hop_size):
+def process_spectrogram(filename, block_size, hop_size, output_frame_size):
     """
     Computes three types of spectrograms (normal, frequency reassigned,
     time-frequency reassigned) from an audio file and stores and image from each
@@ -138,8 +152,9 @@ def process_spectrogram(filename, block_size, hop_size):
     w = create_window(block_size)
     X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
 
-    X_reassigned_f = requantize_f_spectrogram(X_mag, X_inst_freqs)
-    X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, fs, X_mag)[0]
+    X_reassigned_f = requantize_tf_spectrogram(None, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag)[0]
+    X_reassigned_f = db_scale(X_reassigned_f ** 2)
+    X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag)[0]
     X_reassigned_tf = db_scale(X_reassigned_tf ** 2)
     X_stft = db_scale(X_mag ** 2)
     image_filename = os.path.basename(filename).replace('.wav', '.png')
@@ -203,4 +218,4 @@ def pitch_bin_range(pitch_start, pitch_end, tuning):
 
 if __name__ == '__main__':
     import sys
-    process_spectrogram(filename=sys.argv[1], block_size=2048, hop_size=512)
+    process_spectrogram(filename=sys.argv[1], block_size=2048, hop_size=512, output_frame_size=512)
