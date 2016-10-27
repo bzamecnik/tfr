@@ -142,6 +142,40 @@ def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size,
 
     return counts, x_edges, y_edges
 
+# TODO: deduplicate with requantize_tf_spectrogram
+def requantize_tf_chromagram(X_group_delays, X_inst_freqs, times, block_size,
+    output_frame_size, fs, weights=None, bin_range=(-48, 67), bin_division=1):
+    block_duration = block_size / fs
+    block_center_time = block_duration / 2
+    # group delays are in range [-0.5, 0.5] - relative coordinates within the
+    # block where 0.0 is the block center
+    freq_bin_count = X_inst_freqs.shape[1]
+    pitch_bin_count = (bin_range[1] - bin_range[0]) * bin_division
+
+    X_time = np.tile(times + block_center_time + np.finfo(np.float32).eps, (freq_bin_count, 1)).T
+    if X_group_delays is not None:
+        X_time += X_group_delays * block_duration
+
+    eps = np.finfo(np.float32).eps
+    pitch_quantizer = PitchQuantizer(Tuning(), bin_division=bin_division)
+    # TODO: is it possible to quantize using relative freqs to avoid
+    # dependency on the fs parameter?
+    pitch_bins = pitch_quantizer.quantize(np.maximum(fs * X_inst_freqs, eps)).flatten()
+
+    end_input_time = times[-1] + block_duration
+    output_frame_count = (end_input_time * fs) // output_frame_size
+    time_range = (0, output_frame_count * output_frame_size / fs)
+    # range of normalized frequencies
+
+    output_shape = (output_frame_count, pitch_bin_count)
+    counts, x_edges, y_edges = np.histogram2d(
+        X_time.flatten(), pitch_bins.flatten(),
+        weights=weights.flatten(),
+        range=(time_range, bin_range),
+        bins=output_shape)
+
+    return counts, x_edges, y_edges
+
 def process_spectrogram(filename, block_size, hop_size, output_frame_size):
     """
     Computes three types of spectrograms (normal, frequency reassigned,
@@ -180,6 +214,11 @@ def process_spectrogram(filename, block_size, hop_size, output_frame_size):
     X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag)[0]
     X_reassigned_tf = db_scale(X_reassigned_tf ** 2)
     save_raw_spectrogram_bitmap(image_filename + '_reassigned_tf.png', X_reassigned_tf)
+
+    # chromagram
+    X_chromagram = requantize_tf_chromagram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag)[0]
+    X_chromagram = db_scale(X_chromagram ** 2)
+    save_raw_spectrogram_bitmap(image_filename + '_chromagram.png', X_chromagram)
 
 def reassigned_spectrogram(x, w, to_log=True):
     """
