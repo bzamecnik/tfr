@@ -271,4 +271,4 @@ def pitch_bin_range(pitch_start, pitch_end, tuning):
 
 if __name__ == '__main__':
     import sys
-    process_spectrogram(filename=sys.argv[1], block_size=2048, hop_size=512, output_frame_size=512)
+    process_spectrogram(filename=sys.argv[1], block_size=4096, hop_size=1024, output_frame_size=1024)
