@@ -152,20 +152,34 @@ def process_spectrogram(filename, block_size, hop_size, output_frame_size):
     w = create_window(block_size)
     X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
 
+
+    image_filename = os.path.basename(filename).replace('.wav', '')
+
+    # STFT on overlapping input frames
+    X_stft = db_scale(X_mag ** 2)
+    save_raw_spectrogram_bitmap(image_filename + '_stft_frames.png', X_stft)
+
+    X_bin_freqs = np.tile(fftfreqs(block_size, fs)/fs, (X_inst_freqs.shape[0], 1))
+
+    # STFT requantized to the output frames (no reassignment)
+    X_stft_requantized = requantize_tf_spectrogram(None, X_bin_freqs, times, block_size, output_frame_size, fs, X_mag)[0]
+    X_stft_requantized = db_scale(X_stft_requantized ** 2)
+    save_raw_spectrogram_bitmap(image_filename + '_stft_requantized.png', X_stft_requantized)
+
+    # STFT reassigned in time and requantized to output frames
+    X_reassigned_t = requantize_tf_spectrogram(X_group_delays, X_bin_freqs, times, block_size, output_frame_size, fs, X_mag)[0]
+    X_reassigned_t = db_scale(X_reassigned_t ** 2)
+    save_raw_spectrogram_bitmap(image_filename + '_reassigned_t.png', X_reassigned_t)
+
+    # STFT reassigned in frequency and requantized to output frames
     X_reassigned_f = requantize_tf_spectrogram(None, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag)[0]
     X_reassigned_f = db_scale(X_reassigned_f ** 2)
+    save_raw_spectrogram_bitmap(image_filename + '_reassigned_f.png', X_reassigned_f)
+
+    # STFT reassigned both in time and frequency and requantized to output frames
     X_reassigned_tf = requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag)[0]
     X_reassigned_tf = db_scale(X_reassigned_tf ** 2)
-    X_stft = db_scale(X_mag ** 2)
-    image_filename = os.path.basename(filename).replace('.wav', '.png')
-    save_raw_spectrogram_bitmap('reassigned_f_' + image_filename, X_reassigned_f)
-    save_raw_spectrogram_bitmap('reassigned_tf_' + image_filename, X_reassigned_tf)
-    save_raw_spectrogram_bitmap('normal_' + image_filename, X_stft)
-
-#     X_time = X_group_delays + np.tile(np.arange(X.shape[0]).reshape(-1, 1), X.shape[1])
-#     idx = (abs(X).flatten() > 10) & (X_inst_freqs.flatten() < 0.5)
-#     plt.scatter(X_time.flatten()[idx], X_inst_freqs.flatten()[idx], alpha=0.1)
-#     plt.savefig('scatter_' + image_filename)
+    save_raw_spectrogram_bitmap(image_filename + '_reassigned_tf.png', X_reassigned_tf)
 
 def reassigned_spectrogram(x, w, to_log=True):
     """
