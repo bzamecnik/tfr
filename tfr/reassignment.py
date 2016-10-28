@@ -243,6 +243,24 @@ def process_spectrogram(filename, block_size, hop_size, output_frame_size):
         reassign_time=True, reassign_frequency=True)
     save_raw_spectrogram_bitmap(image_filename + '_chromagram_tf.png', X_chromagram)
 
+    # T-reassigned chromagram
+    X_chromagram = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+        transform_freqs_func_chromagram,
+        reassign_time=True, reassign_frequency=False)
+    save_raw_spectrogram_bitmap(image_filename + '_chromagram_t.png', X_chromagram)
+
+    # F-reassigned chromagram
+    X_chromagram = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+        transform_freqs_func_chromagram,
+        reassign_time=False, reassign_frequency=True)
+    save_raw_spectrogram_bitmap(image_filename + '_chromagram_f.png', X_chromagram)
+
+    # non-reassigned chromagram
+    X_chromagram = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+        transform_freqs_func_chromagram,
+        reassign_time=False, reassign_frequency=False)
+    save_raw_spectrogram_bitmap(image_filename + '_chromagram_no.png', X_chromagram)
+
 def reassigned_spectrogram(x, w, to_log=True):
     """
     From blocks of audio signal it computes the frequency reassigned spectrogram
