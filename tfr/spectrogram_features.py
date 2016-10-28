@@ -6,23 +6,27 @@ suitable as features for machine learning.
 import numpy as np
 import os
 
-from .spectrogram import create_window, stft_spectrogram
+from .spectrogram import create_window
 from .analysis import read_blocks
 from .reassignment import reassigned_spectrogram, chromagram
 
 
-def spectrogram_features(file_name, block_size, hop_size, spectrogram_type, to_log=True):
+def spectrogram_features(file_name, block_size, hop_size, output_frame_size, spectrogram_type, to_log=True):
     x, times, fs = read_blocks(file_name, block_size, hop_size, mono_mix=True)
     w = create_window(block_size)
 
     if spectrogram_type == 'stft':
-        spectrogram_func = stft_spectrogram
+        X = reassigned_spectrogram(x, w, times, block_size, output_frame_size,
+            fs, to_log=to_log, reassign_time=False, reassign_frequency=False)
     elif spectrogram_type == 'reassigned':
-        spectrogram_func = reassigned_spectrogram
+        X = reassigned_spectrogram(x, w, times, block_size, output_frame_size,
+            fs, to_log=to_log)
     elif spectrogram_type == 'chromagram':
-        spectrogram_func = lambda x, w, to_log: chromagram(x, w, fs, to_log=to_log)
+        X = chromagram(x, w, times, fs, block_size, output_frame_size,
+            to_log=to_log)
+    else:
+        raise ValueError('unknown spectrogram type: %s' % spectrogram_type)
 
-    X = spectrogram_func(x, w, to_log)
     return X
 
 def spectrogram_features_to_file(input_filename, output_filename, block_size, hop_size, spectrogram_type, to_log=True):
@@ -41,6 +45,7 @@ def parse_args():
     parser.add_argument('output_file', metavar='OUTPUT', nargs='?', help='output file in NumPy npz format')
     parser.add_argument('-b', '--block-size', type=int, default=2048, help='STFT block size')
     parser.add_argument('-p', '--hop-size', type=int, default=512, help='STFT hop size')
+    parser.add_argument('-o', '--output-frame-size', type=int, default=512, help='output frame size')
     parser.add_argument('-t', '--type', default='stft', help='plain "stft", "reassigned" spectrogram or "chromagram"')
 
     return parser.parse_args()
@@ -50,4 +55,5 @@ if __name__ == '__main__':
 
     output = args.output_file if args.output_file else default_output_filename(args.input_file, args.type)
 
-    spectrogram_features_to_file(args.input_file, output, args.block_size, args.hop_size, args.type)
+    spectrogram_features_to_file(args.input_file, output, args.block_size,
+        args.output_frame_size, args.hop_size, args.type)

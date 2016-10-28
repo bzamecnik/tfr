@@ -11,6 +11,8 @@ class ChromagramTransformer(BaseEstimator, TransformerMixin):
         self.sample_rate = sample_rate
         self.block_size = block_size
         self.hop_size = hop_size
+        # TODO: make this configurable
+        self.output_frame_size = hop_size
         self.bin_range = bin_range
         self.bin_division = bin_division
 
@@ -27,7 +29,10 @@ class ChromagramTransformer(BaseEstimator, TransformerMixin):
         X_chromagram = chromagram(
             X_blocks,
             self.window,
+            X_times,
             self.sample_rate,
+            self.block_size,
+            self.output_frame_size,
             to_log=True,
             bin_range=self.bin_range,
             bin_division=self.bin_division)

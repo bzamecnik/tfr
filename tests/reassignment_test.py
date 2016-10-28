@@ -17,10 +17,14 @@ def test_chromagram_on_single_tone_should_have_peak_at_that_tone():
     fs = 44100
     x = sine(sample_time(0, 1, fs=fs), freq=f)
     block_size = 4096
+    hop_size = 2048
+    output_frame_size = hop_size
     window = create_window(block_size)
-    x_blocks, x_times = split_to_blocks(x, block_size=block_size, hop_size=2048, fs=fs)
+    x_blocks, x_times = split_to_blocks(x, block_size=block_size, hop_size=hop_size, fs=fs)
     bin_range = [-48, 67]
-    x_chromagram = chromagram(x_blocks, window, fs=fs, to_log=True, bin_range=bin_range, bin_division=1)
+    x_chromagram = chromagram(x_blocks, window, x_times, fs=fs,
+        block_size=block_size, output_frame_size=output_frame_size, to_log=True,
+        bin_range=bin_range, bin_division=1)
 
     max_bin_expected = pitch - bin_range[0]
     max_bin_actual = x_chromagram.mean(axis=0).argmax()
@@ -38,22 +42,23 @@ def test_arg():
 
 def test_reassigned_spectrogram_values_should_be_in_proper_range():
     block_size = 4096
+    output_frame_size = 1024
     audio_file = os.path.join(DATA_DIR, 'she_brings_to_me.wav')
     x_blocks, x_times, fs = read_blocks(audio_file, block_size=block_size)
     w = create_window(block_size)
-    X_r = reassigned_spectrogram(x_blocks, w, to_log=True)
+    X_r = reassigned_spectrogram(x_blocks, w, x_times, block_size, output_frame_size, fs, to_log=True)
     assert np.all(X_r >= -120), 'min value: %f should be >= -120' % X_r.min()
     assert np.all(X_r <= 0), 'max value: %f should be <= 0' % X_r.max()
 
 def test_reassigned_chromagram_values_should_be_in_proper_range():
     block_size = 4096
+    output_frame_size = 1024
     audio_file = os.path.join(DATA_DIR, 'she_brings_to_me.wav')
     x_blocks, x_times, fs = read_blocks(audio_file, block_size=block_size)
     w = create_window(block_size)
-    X_r = chromagram(x_blocks, w, fs, to_log=True)
+    X_r = chromagram(x_blocks, w, x_times, fs, block_size, output_frame_size, to_log=True)
     assert np.all(X_r >= -120), 'min value: %f should be >= -120' % X_r.min()
     assert np.all(X_r <= 0), 'max value: %f should be <= 0' % X_r.max()
-
 
 # --- helper functions ---
 

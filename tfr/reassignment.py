@@ -92,25 +92,6 @@ def compute_spectra(x, w, positive_only=True):
 
     return X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays
 
-# deprecated
-def requantize_f_spectrogram(X_mag, X_inst_freqs, to_log=True, positive_only=True):
-    """
-    Spectrogram requantized only in frequency.
-
-    positive_only - indicates that input and output is the positive half of the
-    spectrum
-    """
-    X_reassigned = np.empty(X_mag.shape)
-    N = X_mag.shape[1]
-    # range of normalized frequencies
-    freq_range = (0, 0.5) if positive_only else (0, 1)
-    for i in range(X_mag.shape[0]):
-        X_reassigned[i, :] = np.histogram(X_inst_freqs[i], N, range=freq_range, weights=X_mag[i])[0]
-    X_reassigned = X_reassigned ** 2
-    if to_log:
-        X_reassigned = db_scale(X_reassigned)
-    return X_reassigned
-
 def transform_freqs_spectrogram(positive_only=True):
     def transform(X_inst_freqs):
         # range of normalized frequencies
@@ -164,6 +145,18 @@ def requantize_tf_spectrogram_common(X_time, X_y, times, block_size,
     return counts, x_edges, y_edges
 
 def reassigned_tf_spectrogram(
+    x, w, times, block_size,
+    output_frame_size, fs,
+    transform_freqs_func,
+    reassign_time=True, reassign_frequency=True):
+    X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
+    return reassigned_tf_spectrogram_from_spectra(
+        X_group_delays, X_inst_freqs, times, block_size,
+        output_frame_size, fs, X_mag,
+        transform_freqs_func,
+        reassign_time, reassign_frequency)
+
+def reassigned_tf_spectrogram_from_spectra(
     X_group_delays, X_inst_freqs, times, block_size,
     output_frame_size, fs, X_mag,
     transform_freqs_func,
@@ -212,25 +205,25 @@ def process_spectrogram(filename, block_size, hop_size, output_frame_size):
     transform_freqs_func_spectrogram = transform_freqs_spectrogram(positive_only=True)
 
     # STFT requantized to the output frames (no reassignment)
-    X_stft_requantized = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+    X_stft_requantized = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
         transform_freqs_func_spectrogram,
         reassign_time=False, reassign_frequency=False)
     save_raw_spectrogram_bitmap(image_filename + '_stft_requantized.png', X_stft_requantized)
 
     # STFT reassigned in time and requantized to output frames
-    X_reassigned_t = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+    X_reassigned_t = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
         transform_freqs_func_spectrogram,
         reassign_time=True, reassign_frequency=False)
     save_raw_spectrogram_bitmap(image_filename + '_reassigned_t.png', X_reassigned_t)
 
     # STFT reassigned in frequency and requantized to output frames
-    X_reassigned_f = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+    X_reassigned_f = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
         transform_freqs_func_spectrogram,
         reassign_time=False, reassign_frequency=True)
     save_raw_spectrogram_bitmap(image_filename + '_reassigned_f.png', X_reassigned_f)
 
     # STFT reassigned both in time and frequency and requantized to output frames
-    X_reassigned_tf = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+    X_reassigned_tf = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
         transform_freqs_func_spectrogram,
         reassign_time=True, reassign_frequency=True)
     save_raw_spectrogram_bitmap(image_filename + '_reassigned_tf.png', X_reassigned_tf)
@@ -238,77 +231,48 @@ def process_spectrogram(filename, block_size, hop_size, output_frame_size):
     transform_freqs_func_chromagram = transform_freqs_chromagram(fs, bin_range=(-48, 67), bin_division=1)
 
     # TF-reassigned chromagram
-    X_chromagram = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+    X_chromagram_tf = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
         transform_freqs_func_chromagram,
         reassign_time=True, reassign_frequency=True)
-    save_raw_spectrogram_bitmap(image_filename + '_chromagram_tf.png', X_chromagram)
+    save_raw_spectrogram_bitmap(image_filename + '_chromagram_tf.png', X_chromagram_tf)
 
     # T-reassigned chromagram
-    X_chromagram = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+    X_chromagram_t = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
         transform_freqs_func_chromagram,
         reassign_time=True, reassign_frequency=False)
-    save_raw_spectrogram_bitmap(image_filename + '_chromagram_t.png', X_chromagram)
+    save_raw_spectrogram_bitmap(image_filename + '_chromagram_t.png', X_chromagram_t)
 
     # F-reassigned chromagram
-    X_chromagram = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+    X_chromagram_t = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
         transform_freqs_func_chromagram,
         reassign_time=False, reassign_frequency=True)
-    save_raw_spectrogram_bitmap(image_filename + '_chromagram_f.png', X_chromagram)
+    save_raw_spectrogram_bitmap(image_filename + '_chromagram_f.png', X_chromagram_t)
 
     # non-reassigned chromagram
-    X_chromagram = reassigned_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
+    X_chromagram = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, block_size, output_frame_size, fs, X_mag,
         transform_freqs_func_chromagram,
         reassign_time=False, reassign_frequency=False)
     save_raw_spectrogram_bitmap(image_filename + '_chromagram_no.png', X_chromagram)
 
-def reassigned_spectrogram(x, w, to_log=True):
+def reassigned_spectrogram(x, w, times, block_size, output_frame_size, fs, to_log=True,
+    reassign_time=True, reassign_frequency=True):
     """
     From blocks of audio signal it computes the frequency reassigned spectrogram
     requantized back to the original linear bins.
 
     Only the real half of spectrum is given.
     """
-    # TODO: The computed arrays are symetrical (positive vs. negative freqs).
-    # We should only use one half.
-    X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
-    return requantize_f_spectrogram(X_mag, X_inst_freqs, to_log)
+    return reassigned_tf_spectrogram(x, w, times, block_size, output_frame_size, fs,
+        transform_freqs_spectrogram(), reassign_time, reassign_frequency)
 
-def chromagram(x, w, fs, bin_range=(-48, 67), bin_division=1, to_log=True):
+# [-48,67) -> [~27.5, 21096.2) Hz
+def chromagram(x, w, times, fs, block_size, output_frame_size, bin_range=(-48, 67), bin_division=1, to_log=True):
     """
     From blocks of audio signal it computes the frequency reassigned spectrogram
     requantized to pitch bins (chromagram).
     """
-    # TODO: better give frequency range
-    X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
-    n_blocks, n_freqs = X.shape
-    weights = X_mag.flatten()
-    eps = np.finfo(np.float32).eps
-    pitch_quantizer = PitchQuantizer(Tuning(), bin_division=bin_division)
-    # TODO: is it possible to quantize using relative freqs to avoid
-    # dependency on the fs parameter?
-    pitch_bins = pitch_quantizer.quantize(np.maximum(fs * X_inst_freqs, eps)).flatten()
-    X_chromagram = np.histogram2d(
-        np.repeat(np.arange(n_blocks), n_freqs),
-        pitch_bins,
-        bins=(np.arange(n_blocks + 1),
-              np.arange(bin_range[0], bin_range[1] + 1, 1 / bin_division)),
-        weights=weights
-    )[0]
-    X_chromagram = X_chromagram ** 2
-    if to_log:
-        X_chromagram = db_scale(X_chromagram)
-    return X_chromagram
-
-
-# unused - range of bins for the chromagram
-def pitch_bin_range(pitch_start, pitch_end, tuning):
-    """
-    Generates a range of pitch bins and their frequencies.
-    """
-    # eg. [-48,67) -> [~27.5, 21096.2) Hz
-    pitch_range = np.arange(pitch_start, pitch_end)
-    bin_center_freqs = np.array([tuning.pitch_to_freq(f) for f in pitch_range])
-    return pitch_range, bin_center_freqs
+    return reassigned_tf_spectrogram(x, w, times, block_size, output_frame_size, fs,
+        transform_freqs_chromagram(fs, bin_range=(-48, 67), bin_division=1))
 
 if __name__ == '__main__':
     import sys
