@@ -119,48 +119,18 @@ def requantize_tf_spectrogram(X_group_delays, X_inst_freqs, times, block_size,
     Note it is quantized into non-overlapping output time frames which may be
     of a different size than input time frames.
     """
-    block_duration = block_size / fs
-    block_center_time = block_duration / 2
-    # group delays are in range [-0.5, 0.5] - relative coordinates within the
-    # block where 0.0 is the block center
-    freq_bin_count = X_inst_freqs.shape[1]
-    X_time = np.tile(times + block_center_time + np.finfo(np.float32).eps, (freq_bin_count, 1)).T
-    if X_group_delays is not None:
-        X_time += X_group_delays * block_duration
-    end_input_time = times[-1] + block_duration
-    output_frame_count = (end_input_time * fs) // output_frame_size
-    time_range = (0, output_frame_count * output_frame_size / fs)
     # range of normalized frequencies
-    freq_range = (0, 0.5) if positive_only else (0, 1)
+    bin_range = (0, 0.5) if positive_only else (0, 1)
+    output_bin_count =  X_inst_freqs.shape[1]
+    X_y = X_inst_freqs
+    return requantize_tf_spectrogram_common(X_group_delays, X_y, times, block_size,
+        output_frame_size, output_bin_count, bin_range, fs, weights, positive_only)
 
-    output_shape = (output_frame_count, freq_bin_count)
-    counts, x_edges, y_edges = np.histogram2d(
-        X_time.flatten(), X_inst_freqs.flatten(),
-        weights=weights.flatten(),
-        range=(time_range, freq_range),
-        bins=output_shape)
-
-    return counts, x_edges, y_edges
-
-# TODO: deduplicate with requantize_tf_spectrogram
 def requantize_tf_chromagram(X_group_delays, X_inst_freqs, times, block_size,
     output_frame_size, fs, weights=None, bin_range=(-48, 67), bin_division=1):
-    eps = np.finfo(np.float32).eps
-
-    block_duration = block_size / fs
-    block_center_time = block_duration / 2
-    # group delays are in range [-0.5, 0.5] - relative coordinates within the
-    # block where 0.0 is the block center
-    freq_bin_count = X_inst_freqs.shape[1]
-    pitch_bin_count = (bin_range[1] - bin_range[0]) * bin_division
-
-    X_time = np.tile(times + block_center_time + eps, (freq_bin_count, 1)).T
-    if X_group_delays is not None:
-        X_time += X_group_delays * block_duration
-
-    # TODO: is it possible to quantize using relative freqs to avoid
-    # dependency on the fs parameter?
-
+    """
+    TF-reassigned chromagram.
+    """
     # Perform the proper quantization to pitch bins according to possible
     # subdivision before the actual histogram computation. Still we need to
     # move the quantized pitch value a bit from the lower bin edge to ensure
@@ -169,18 +139,46 @@ def requantize_tf_chromagram(X_group_delays, X_inst_freqs, times, block_size,
     # values to the lower bin edge. The epsilon is there to prevent log of 0
     # in the pitch to frequency transformation.
 
+    # TODO: is it possible to quantize using relative freqs to avoid
+    # dependency on the fs parameter?
+
     quantization_border = 1 / (2 * bin_division)
     pitch_quantizer = PitchQuantizer(Tuning(), bin_division=bin_division)
-    pitch_bins = pitch_quantizer.quantize(np.maximum(fs * X_inst_freqs, eps) + quantization_border).flatten()
+    eps = np.finfo(np.float32).eps
+    X_y = pitch_quantizer.quantize(np.maximum(fs * X_inst_freqs, eps) + quantization_border)
+    output_bin_count = (bin_range[1] - bin_range[0]) * bin_division
+
+    return requantize_tf_spectrogram_common(X_group_delays, X_y, times, block_size,
+        output_frame_size, output_bin_count, bin_range, fs, weights)
+
+def requantize_tf_spectrogram_common(X_group_delays, X_y, times, block_size,
+    output_frame_size, output_bin_count, bin_range, fs, weights=None, positive_only=True):
+    """
+    Common code for spectrogram requantized both in frequency and time.
+
+    Note it is quantized into non-overlapping output time frames which may be
+    of a different size than input time frames.
+    """
+    eps = np.finfo(np.float32).eps
+
+    block_duration = block_size / fs
+    block_center_time = block_duration / 2
+    # group delays are in range [-0.5, 0.5] - relative coordinates within the
+    # block where 0.0 is the block center
+    input_bin_count = X_y.shape[1]
+
+    X_time = np.tile(times + block_center_time + eps, (input_bin_count, 1)).T
+    if X_group_delays is not None:
+        X_time += X_group_delays * block_duration
 
     end_input_time = times[-1] + block_duration
     output_frame_count = (end_input_time * fs) // output_frame_size
     time_range = (0, output_frame_count * output_frame_size / fs)
 
-    output_shape = (output_frame_count, pitch_bin_count)
+    output_shape = (output_frame_count, output_bin_count)
     counts, x_edges, y_edges = np.histogram2d(
-        X_time.flatten(), pitch_bins.flatten(),
-        weights=weights.flatten(),
+        X_time.flatten(), X_y.flatten(),
+        weights=weights.flatten() if weights is not None else None,
         range=(time_range, bin_range),
         bins=output_shape)
 
@@ -195,7 +193,6 @@ def process_spectrogram(filename, block_size, hop_size, output_frame_size):
     x, times, fs = read_blocks(filename, block_size, hop_size, mono_mix=True)
     w = create_window(block_size)
     X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
-
 
     image_filename = os.path.basename(filename).replace('.wav', '')
 
