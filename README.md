@@ -12,6 +12,8 @@ Besides normals spectrograms it allows to compute reassigned spectrograms, trans
 
 A reassigned spectrogram often provides more precise localization of energy in the time-frequency plane than a plain spectrogram. Roughly said in the reassignment method we use the phase (which is normally discarded) and move the samples on the time-frequency plane to a more suitable place computed from derivatives of the phase.
 
+This library supports reassignment in both frequency and time (both are optional). As well it does requantization from the input overlapping grid to an non-overlapping output grid.
+
 ## Installation
 
 ```
@@ -37,6 +39,7 @@ import soundfile as sf
 
 x, fs = sf.read('audio.flac')
 block_size = 4096
+output_frame_size = 1024
 window = create_window(block_size)
 x_blocks, x_times = split_to_blocks(to_mono(x), block_size=block_size, hop_size=2048, fs=fs)
 
@@ -47,7 +50,8 @@ x_blocks, x_times = split_to_blocks(to_mono(x), block_size=block_size, hop_size=
 # output:
 #   - chromagram of shape (block_count, bin_count)
 #   - values are log-magnitudes in dBFS [-120.0, bin_count]
-x_chromagram = chromagram(x_blocks, window, fs=fs, to_log=True, bin_range=[-48, 67], bin_division=1)
+x_chromagram = chromagram(x_blocks, window, x_times, block_size,
+  output_frame_size, fs=fs, to_log=True, bin_range=[-48, 67], bin_division=1)
 ```
 
 ### Extract features via CLI
