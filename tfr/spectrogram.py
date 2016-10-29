@@ -79,16 +79,17 @@ def create_window(size):
     w = w / mean_power(w)
     return w
 
-def db_scale(magnitude_spectrum):
+def db_scale(magnitude_spectrum, normalized=False):
     """
-    Transform linear magnitude to dbFS (full-scale).
+    Transform linear magnitude to dbFS (full-scale) [-120, 0] (for input range
+    [0.0, 1.0]) which can be optionally normalized to [0.0, 1.0].
+    """
+    scaled = 20 * np.log10(np.maximum(1e-6, magnitude_spectrum))
 
-    For input range [0, 1] the output range is [-120, 0].
-    """
-    # min_amplitude = 1e-6
-    # threshold = -np.log10(min_amplitude)
-    # return ((threshold + np.log10(np.maximum(min_amplitude, magnitude_spectrum))) / threshold)
-    return 20 * np.log10(np.maximum(1e-6, magnitude_spectrum))
+    # map from raw dB [-120.0, 0] to [0.0, 1.0]
+    if normalized:
+        scaled = (scaled / 120) + 1
+    return scaled
 
 # -- extras --
 
