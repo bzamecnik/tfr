@@ -64,7 +64,7 @@ class Spectrogram():
     def reassigned(
         self,
         output_frame_size, transform,
-        reassign_time=True, reassign_frequency=True):
+        reassign_time=True, reassign_frequency=True, to_log=True):
         """
         Reassigned spectrogram requantized both in frequency and time.
 
@@ -109,7 +109,11 @@ class Spectrogram():
             range=(time_range, bin_range),
             bins=output_shape)
 
-        X_spectrogram = db_scale(X_spectrogram ** 2)
+        # power spectra
+        X_spectrogram = X_spectrogram ** 2
+        # dB scaling
+        if to_log:
+            X_spectrogram = db_scale(X_spectrogram)
 
         return X_spectrogram
 
@@ -278,7 +282,7 @@ def reassigned_spectrogram(signal_frames, output_frame_size, to_log=True,
     """
     return Spectrogram(signal_frames).reassigned(
         output_frame_size, LinearTransform(),
-        reassign_time=reassign_time, reassign_frequency=reassign_frequency)
+        reassign_time, reassign_frequency, to_log)
 
 # [-48,67) -> [~27.5, 21096.2) Hz
 def chromagram(signal_frames, output_frame_size, bin_range=(-48, 67), bin_division=1, to_log=True):
@@ -287,7 +291,7 @@ def chromagram(signal_frames, output_frame_size, bin_range=(-48, 67), bin_divisi
     requantized to pitch bins (chromagram).
     """
     return Spectrogram(signal_frames).reassigned(
-        output_frame_size, ChromaTransform(bin_range, bin_division))
+        output_frame_size, ChromaTransform(bin_range, bin_division), to_log)
 
 if __name__ == '__main__':
     import sys
