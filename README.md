@@ -39,8 +39,7 @@ import soundfile as sf
 
 frame_size = 4096
 output_frame_size = 1024
-window = create_window(frame_size)
-x_frames, x_times = SignalFrames('audio.flac', frame_size=frame_size, hop_size=2048)
+signal_frames = SignalFrames('audio.flac', frame_size=frame_size, hop_size=2048)
 
 # input:
 #   - frames of mono audio signal normalized to [0.0, 1.0]
@@ -49,8 +48,8 @@ x_frames, x_times = SignalFrames('audio.flac', frame_size=frame_size, hop_size=2
 # output:
 #   - chromagram of shape (frame_count, bin_count)
 #   - values are log-magnitudes in dBFS [-120.0, bin_count]
-x_chromagram = chromagram(x_frames, window, x_times, frame_size,
-  output_frame_size, fs=fs, to_log=True, bin_range=[-48, 67], bin_division=1)
+x_chromagram = chromagram(signal_frames, create_window,
+  output_frame_size, to_log=True, bin_range=[-48, 67], bin_division=1)
 ```
 
 ### Extract features via CLI

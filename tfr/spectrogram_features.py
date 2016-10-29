@@ -13,18 +13,16 @@ from .reassignment import reassigned_spectrogram, chromagram
 
 def spectrogram_features(file_name, frame_size, hop_size, output_frame_size, spectrogram_type, to_log=True):
     signal_frames = SignalFrames(file_name, frame_size, hop_size, mono_mix=True)
-    x, times, fs = signal_frames.frames, signal_frames.start_times, signal_frames.sample_rate
-    w = create_window(frame_size)
+    window = create_window
 
     if spectrogram_type == 'stft':
-        X = reassigned_spectrogram(x, w, times, frame_size, output_frame_size,
-            fs, to_log=to_log, reassign_time=False, reassign_frequency=False)
+        X = reassigned_spectrogram(signal_frames, window, output_frame_size,
+            to_log=to_log, reassign_time=False, reassign_frequency=False)
     elif spectrogram_type == 'reassigned':
-        X = reassigned_spectrogram(x, w, times, frame_size, output_frame_size,
-            fs, to_log=to_log)
-    elif spectrogram_type == 'chromagram':
-        X = chromagram(x, w, times, fs, frame_size, output_frame_size,
+        X = reassigned_spectrogram(signal_frames, window, output_frame_size,
             to_log=to_log)
+    elif spectrogram_type == 'chromagram':
+        X = chromagram(signal_frames, window, output_frame_size, to_log=to_log)
     else:
         raise ValueError('unknown spectrogram type: %s' % spectrogram_type)
 

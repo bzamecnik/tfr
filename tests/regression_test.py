@@ -6,7 +6,6 @@ Just to ensure we didn't break anything.
 
 import numpy as np
 import os
-import soundfile as sf
 from tfr.spectrogram_features import spectrogram_features
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')

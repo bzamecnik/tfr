@@ -16,8 +16,6 @@ class ChromagramTransformer(BaseEstimator, TransformerMixin):
         self.bin_range = bin_range
         self.bin_division = bin_division
 
-        self.window = create_window(frame_size)
-
     def transform(self, X, **transform_params):
         """
         Transforms audio clip X into a normalized chromagram.
@@ -26,11 +24,8 @@ class ChromagramTransformer(BaseEstimator, TransformerMixin):
         """
         signal_frames = SignalFrames(X, self.frame_size, self.hop_size, mono_mix=True)
         X_chromagram = chromagram(
-            signal_frames.frames,
-            self.window,
-            signal_frames.start_times,
-            self.sample_rate,
-            self.frame_size,
+            signal_frames,
+            create_window,
             self.output_frame_size,
             to_log=True,
             bin_range=self.bin_range,

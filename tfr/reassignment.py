@@ -7,6 +7,107 @@ from .analysis import SignalFrames
 from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
 
+class Spectrogram():
+    """
+    Represents spectrogram information of a time-domain signal which can be used
+    to compute various types of reassigned spectrograms, chromagrams, etc.
+    """
+    def __init__(self, signal_frames, window, positive_only=True):
+        """
+        :param signal_frames: signal represented as SignalFrames instance
+        :param window_func: STFT window function - produces 1D normalized window
+        """
+        self.signal_frames = signal_frames
+
+        x_frames = signal_frames.frames
+        w = window(signal_frames.frame_size)
+
+        # complex spectra of windowed blocks of signal - STFT
+        self.X_complex = np.fft.fft(x_frames * w)
+        # linear magnitude spectrogram
+        self.X_mag = abs(self.X_complex) / self.X_complex.shape[1]
+
+        # spectra of signal shifted in time
+
+        # This fakes looking at the previous frame shifted by one sample.
+        # In order to work only with one frame of size N and not N + 1, we fill the
+        # missing value with zero. This should not introduce a large error, since the
+        # borders of the amplitude frame will go to zero anyway due to applying a
+        # window function in the STFT tranform.
+        X_prev_time = np.fft.fft(shift_right(x_frames) * w)
+
+        # spectra shifted in frequency
+        X_prev_freq = shift_right(self.X_complex)
+
+        # cross-spectra - ie. spectra of cross-correlation between the
+        # respective time-domain signals
+        X_cross_time = cross_spectrum(self.X_complex, X_prev_time)
+        X_cross_freq = cross_spectrum(self.X_complex, X_prev_freq)
+
+        # instantaneous frequency estimates
+        # normalized frequencies in range [0.0, 1.0] - from DC to sample rate
+        self.X_inst_freqs = estimate_instant_freqs(X_cross_time)
+        # instantaneous group delay estimates
+        # relative coordinates within the frame with range [-0.5, 0.5] where
+        # 0.0 is the frame center
+        self.X_group_delays = estimate_group_delays(X_cross_freq)
+
+        if positive_only:
+            self.X_mag = positive_freq_magnitudes(self.X_mag)
+            self.X_complex, self.X_inst_freqs, self.X_group_delays = [
+                select_positive_freq_fft(values) for values in
+                [self.X_complex, self.X_inst_freqs, self.X_group_delays]
+            ]
+
+    def reassigned(
+        self,
+        output_frame_size, transform_freqs_func,
+        reassign_time=True, reassign_frequency=True):
+        """
+        Reassigned spectrogram requantized both in frequency and time.
+
+        Note it is quantized into non-overlapping output time frames which may be
+        of a different size than input time frames.
+        """
+
+        frame_size = self.signal_frames.frame_size
+        fs = self.signal_frames.sample_rate
+
+        frame_duration = frame_size / fs
+        frame_center_time = frame_duration / 2
+        # group delays are in range [-0.5, 0.5] - relative coordinates within the
+        # frame where 0.0 is the frame center
+        input_bin_count = self.X_inst_freqs.shape[1]
+
+        eps = np.finfo(np.float32).eps
+        X_time = np.tile(self.signal_frames.start_times + frame_center_time +
+            eps, (input_bin_count, 1)).T
+        if reassign_time:
+            X_time += self.X_group_delays * frame_duration
+
+        if reassign_frequency:
+            X_y = self.X_inst_freqs
+        else:
+            X_y = np.tile(fftfreqs(frame_size, fs) / fs, (self.X_inst_freqs.shape[0], 1))
+
+        X_y, output_bin_count, bin_range = transform_freqs_func(X_y)
+        frame_duration = frame_size / fs
+        # TODO: use self.signal_frames.duration
+        end_input_time = self.signal_frames.start_times[-1] + frame_duration
+        output_frame_count = (end_input_time * fs) // output_frame_size
+        time_range = (0, output_frame_count * output_frame_size / fs)
+
+        output_shape = (output_frame_count, output_bin_count)
+        X_spectrogram, x_edges, y_edges = np.histogram2d(
+            X_time.flatten(), X_y.flatten(),
+            weights=self.X_mag.flatten(),
+            range=(time_range, bin_range),
+            bins=output_shape)
+
+        X_spectrogram = db_scale(X_spectrogram ** 2)
+
+        return X_spectrogram
+
 def cross_spectrum(spectrumA, spectrumB):
     """
     Returns a cross-spectrum, ie. spectrum of cross-correlation of two signals.
@@ -56,42 +157,6 @@ def estimate_group_delays(crossFreqSpectrum):
     "range: [-0.5, 0.5]"
     return 0.5 - arg(crossFreqSpectrum)
 
-def compute_spectra(x, w, positive_only=True):
-    """
-    This computes all the spectra needed for reassignment as well as estimates
-    of instantaneous frequency and group delay.
-
-    Input:
-    - x - an array of time frames
-    - w - 1D normalized window of the same size as x.shape[0]
-    """
-    # normal spectrum (with a window)
-    X = np.fft.fft(x * w)
-    X_mag = abs(X) / X.shape[1]
-    # spectrum of signal shifted in time
-    # This fakes looking at the previous frame shifted by one sample.
-    # In order to work only with one frame of size N and not N + 1, we fill the
-    # missing value with zero. This should not introduce a large error, since the
-    # borders of the amplitude frame will go to zero anyway due to applying a
-    # window function in the STFT tranform.
-    X_prev_time = np.fft.fft(shift_right(x) * w)
-
-    # spectrum shifted in frequency
-    X_prev_freq = shift_right(X)
-    X_cross_time = cross_spectrum(X, X_prev_time)
-    X_cross_freq = cross_spectrum(X, X_prev_freq)
-    X_inst_freqs = estimate_instant_freqs(X_cross_time)
-    X_group_delays = estimate_group_delays(X_cross_freq)
-
-    if positive_only:
-        X_mag = positive_freq_magnitudes(X_mag)
-        X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = [
-            select_positive_freq_fft(values) for values in
-            [X, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays]
-        ]
-
-    return X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays
-
 def transform_freqs_spectrogram(positive_only=True):
     def transform(X_inst_freqs):
         # range of normalized frequencies
@@ -122,70 +187,6 @@ def transform_freqs_chromagram(fs, bin_range=(-48, 67), bin_division=1):
         return X_y, output_bin_count, bin_range
     return transform
 
-def reassigned_tf_spectrogram(
-    x, w, times, frame_size,
-    output_frame_size, fs,
-    transform_freqs_func,
-    reassign_time=True, reassign_frequency=True):
-    """
-    Common code for spectrogram requantized both in frequency and time.
-
-    This method is useful if you'd like to compute the low-level spectra once.
-    """
-    X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
-    return reassigned_tf_spectrogram_from_spectra(
-        X_group_delays, X_inst_freqs, times, frame_size,
-        output_frame_size, fs, X_mag,
-        transform_freqs_func,
-        reassign_time, reassign_frequency)
-
-def reassigned_tf_spectrogram_from_spectra(
-    X_group_delays, X_inst_freqs, times, frame_size,
-    output_frame_size, fs, X_mag,
-    transform_freqs_func,
-    reassign_time=True, reassign_frequency=True):
-    """
-    Common code for spectrogram requantized both in frequency and time.
-
-    Note it is quantized into non-overlapping output time frames which may be
-    of a different size than input time frames.
-
-    This method is useful if you'd like to reuse computed low-level spectra.
-    """
-
-    frame_duration = frame_size / fs
-    frame_center_time = frame_duration / 2
-    # group delays are in range [-0.5, 0.5] - relative coordinates within the
-    # frame where 0.0 is the frame center
-    input_bin_count = X_inst_freqs.shape[1]
-
-    eps = np.finfo(np.float32).eps
-    X_time = np.tile(times + frame_center_time + eps, (input_bin_count, 1)).T
-    if reassign_time:
-        X_time += X_group_delays * frame_duration
-
-    if reassign_frequency:
-        X_y = X_inst_freqs
-    else:
-        X_y = np.tile(fftfreqs(frame_size, fs)/fs, (X_inst_freqs.shape[0], 1))
-
-    X_y, output_bin_count, bin_range = transform_freqs_func(X_y)
-    frame_duration = frame_size / fs
-    end_input_time = times[-1] + frame_duration
-    output_frame_count = (end_input_time * fs) // output_frame_size
-    time_range = (0, output_frame_count * output_frame_size / fs)
-
-    output_shape = (output_frame_count, output_bin_count)
-    X_spectrogram, x_edges, y_edges = np.histogram2d(
-        X_time.flatten(), X_y.flatten(),
-        weights=X_mag.flatten(),
-        range=(time_range, bin_range),
-        bins=output_shape)
-
-    X_spectrogram = db_scale(X_spectrogram ** 2)
-
-    return X_spectrogram
-
 def process_spectrogram(filename, frame_size, hop_size, output_frame_size):
     """
     Computes three types of spectrograms (normal, frequency reassigned,
@@ -194,69 +195,68 @@ def process_spectrogram(filename, frame_size, hop_size, output_frame_size):
     """
     signal_frames = SignalFrames(filename, frame_size, hop_size, mono_mix=True)
 
-    x, times, fs = signal_frames.frames, signal_frames.start_times, signal_frames.sample_rate
-    w = create_window(frame_size)
-    X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
+    spectrogram = Spectrogram(signal_frames, window=create_window)
 
     image_filename = os.path.basename(filename).replace('.wav', '')
 
     # STFT on overlapping input frames
-    X_stft = db_scale(X_mag ** 2)
+    X_stft = db_scale(spectrogram.X_mag ** 2)
     save_raw_spectrogram_bitmap(image_filename + '_stft_frames.png', X_stft)
 
     transform_freqs_func_spectrogram = transform_freqs_spectrogram(positive_only=True)
 
     # STFT requantized to the output frames (no reassignment)
-    X_stft_requantized = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, frame_size, output_frame_size, fs, X_mag,
+    X_stft_requantized = spectrogram.reassigned(output_frame_size,
         transform_freqs_func_spectrogram,
         reassign_time=False, reassign_frequency=False)
     save_raw_spectrogram_bitmap(image_filename + '_stft_requantized.png', X_stft_requantized)
 
     # STFT reassigned in time and requantized to output frames
-    X_reassigned_t = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, frame_size, output_frame_size, fs, X_mag,
+    X_reassigned_t = spectrogram.reassigned(output_frame_size,
         transform_freqs_func_spectrogram,
         reassign_time=True, reassign_frequency=False)
     save_raw_spectrogram_bitmap(image_filename + '_reassigned_t.png', X_reassigned_t)
 
     # STFT reassigned in frequency and requantized to output frames
-    X_reassigned_f = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, frame_size, output_frame_size, fs, X_mag,
+    X_reassigned_f = spectrogram.reassigned(output_frame_size,
         transform_freqs_func_spectrogram,
         reassign_time=False, reassign_frequency=True)
     save_raw_spectrogram_bitmap(image_filename + '_reassigned_f.png', X_reassigned_f)
 
     # STFT reassigned both in time and frequency and requantized to output frames
-    X_reassigned_tf = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, frame_size, output_frame_size, fs, X_mag,
+    X_reassigned_tf = spectrogram.reassigned(output_frame_size,
         transform_freqs_func_spectrogram,
         reassign_time=True, reassign_frequency=True)
     save_raw_spectrogram_bitmap(image_filename + '_reassigned_tf.png', X_reassigned_tf)
 
-    transform_freqs_func_chromagram = transform_freqs_chromagram(fs, bin_range=(-48, 67), bin_division=1)
+    transform_freqs_func_chromagram = transform_freqs_chromagram(
+        signal_frames.sample_rate, bin_range=(-48, 67), bin_division=1)
 
     # TF-reassigned chromagram
-    X_chromagram_tf = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, frame_size, output_frame_size, fs, X_mag,
+    X_chromagram_tf = spectrogram.reassigned(output_frame_size,
         transform_freqs_func_chromagram,
         reassign_time=True, reassign_frequency=True)
     save_raw_spectrogram_bitmap(image_filename + '_chromagram_tf.png', X_chromagram_tf)
 
     # T-reassigned chromagram
-    X_chromagram_t = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, frame_size, output_frame_size, fs, X_mag,
+    X_chromagram_t = spectrogram.reassigned(output_frame_size,
         transform_freqs_func_chromagram,
         reassign_time=True, reassign_frequency=False)
     save_raw_spectrogram_bitmap(image_filename + '_chromagram_t.png', X_chromagram_t)
 
     # F-reassigned chromagram
-    X_chromagram_t = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, frame_size, output_frame_size, fs, X_mag,
+    X_chromagram_t = spectrogram.reassigned(output_frame_size,
         transform_freqs_func_chromagram,
         reassign_time=False, reassign_frequency=True)
     save_raw_spectrogram_bitmap(image_filename + '_chromagram_f.png', X_chromagram_t)
 
     # non-reassigned chromagram
-    X_chromagram = reassigned_tf_spectrogram_from_spectra(X_group_delays, X_inst_freqs, times, frame_size, output_frame_size, fs, X_mag,
+    X_chromagram = spectrogram.reassigned(output_frame_size,
         transform_freqs_func_chromagram,
         reassign_time=False, reassign_frequency=False)
     save_raw_spectrogram_bitmap(image_filename + '_chromagram_no.png', X_chromagram)
 
-def reassigned_spectrogram(x, w, times, frame_size, output_frame_size, fs, to_log=True,
+def reassigned_spectrogram(signal_frames, window, output_frame_size, to_log=True,
     reassign_time=True, reassign_frequency=True):
     """
     From frames of audio signal it computes the frequency reassigned spectrogram
@@ -264,17 +264,20 @@ def reassigned_spectrogram(x, w, times, frame_size, output_frame_size, fs, to_lo
 
     Only the real half of spectrum is given.
     """
-    return reassigned_tf_spectrogram(x, w, times, frame_size, output_frame_size, fs,
-        transform_freqs_spectrogram(), reassign_time, reassign_frequency)
+    return Spectrogram(signal_frames, window).reassigned(
+        output_frame_size,
+        transform_freqs_spectrogram(),
+        reassign_time=reassign_time, reassign_frequency=reassign_frequency)
 
 # [-48,67) -> [~27.5, 21096.2) Hz
-def chromagram(x, w, times, fs, frame_size, output_frame_size, bin_range=(-48, 67), bin_division=1, to_log=True):
+def chromagram(signal_frames, window, output_frame_size, bin_range=(-48, 67), bin_division=1, to_log=True):
     """
     From frames of audio signal it computes the frequency reassigned spectrogram
     requantized to pitch bins (chromagram).
     """
-    return reassigned_tf_spectrogram(x, w, times, frame_size, output_frame_size, fs,
-        transform_freqs_chromagram(fs, bin_range=(-48, 67), bin_division=1))
+    return Spectrogram(signal_frames, window).reassigned(
+        output_frame_size,
+        transform_freqs_chromagram(signal_frames.sample_rate, bin_range=(-48, 67), bin_division=1))
 
 if __name__ == '__main__':
     import sys
