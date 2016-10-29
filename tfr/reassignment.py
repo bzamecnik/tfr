@@ -92,7 +92,8 @@ class Spectrogram():
         else:
             X_y = np.tile(fftfreqs(frame_size, fs) / fs, (self.X_inst_freqs.shape[0], 1))
 
-        X_y, output_bin_count, bin_range = transform_freqs_func(X_y)
+        X_y, output_bin_count, bin_range = transform_freqs_func(X_y,
+            self.signal_frames.sample_rate)
         frame_duration = frame_size / fs
         # TODO: use self.signal_frames.duration
         end_input_time = self.signal_frames.start_times[-1] + frame_duration
@@ -160,7 +161,7 @@ def estimate_group_delays(crossFreqSpectrum):
     return 0.5 - arg(crossFreqSpectrum)
 
 def transform_freqs_spectrogram(positive_only=True):
-    def transform(X_inst_freqs):
+    def transform(X_inst_freqs, sample_rate):
         # range of normalized frequencies
         bin_range = (0, 0.5) if positive_only else (0, 1)
         output_bin_count = X_inst_freqs.shape[1]
@@ -168,7 +169,7 @@ def transform_freqs_spectrogram(positive_only=True):
         return X_y, output_bin_count, bin_range
     return transform
 
-def transform_freqs_chromagram(fs, bin_range=(-48, 67), bin_division=1):
+def transform_freqs_chromagram(bin_range=(-48, 67), bin_division=1):
     # Perform the proper quantization to pitch bins according to possible
     # subdivision before the actual histogram computation. Still we need to
     # move the quantized pitch value a bit from the lower bin edge to ensure
@@ -180,11 +181,11 @@ def transform_freqs_chromagram(fs, bin_range=(-48, 67), bin_division=1):
     # TODO: is it possible to quantize using relative freqs to avoid
     # dependency on the fs parameter?
 
-    def transform(X_inst_freqs):
+    def transform(X_inst_freqs, sample_rate):
         quantization_border = 1 / (2 * bin_division)
         pitch_quantizer = PitchQuantizer(Tuning(), bin_division=bin_division)
         eps = np.finfo(np.float32).eps
-        X_y = pitch_quantizer.quantize(np.maximum(fs * X_inst_freqs, eps) + quantization_border)
+        X_y = pitch_quantizer.quantize(np.maximum(sample_rate * X_inst_freqs, eps) + quantization_border)
         output_bin_count = (bin_range[1] - bin_range[0]) * bin_division
         return X_y, output_bin_count, bin_range
     return transform
@@ -232,7 +233,7 @@ def process_spectrogram(filename, frame_size, hop_size, output_frame_size):
     save_raw_spectrogram_bitmap(image_filename + '_reassigned_tf.png', X_reassigned_tf)
 
     transform_freqs_func_chromagram = transform_freqs_chromagram(
-        signal_frames.sample_rate, bin_range=(-48, 67), bin_division=1)
+        bin_range=(-48, 67), bin_division=1)
 
     # TF-reassigned chromagram
     X_chromagram_tf = spectrogram.reassigned(output_frame_size,
@@ -279,7 +280,7 @@ def chromagram(signal_frames, output_frame_size, bin_range=(-48, 67), bin_divisi
     """
     return Spectrogram(signal_frames).reassigned(
         output_frame_size,
-        transform_freqs_chromagram(signal_frames.sample_rate, bin_range=(-48, 67), bin_division=1))
+        transform_freqs_chromagram(bin_range=(-48, 67), bin_division=1))
 
 if __name__ == '__main__':
     import sys
