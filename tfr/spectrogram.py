@@ -3,7 +3,7 @@ import math
 import scipy
 
 from .features import mean_power
-from .analysis import SignalFrames
+from .signal import SignalFrames
 
 def spectrogram(filename, frame_size=2048, hop_size=512, to_log=True):
     """

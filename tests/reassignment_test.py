@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-from tfr.analysis import SignalFrames
+from tfr.signal import SignalFrames
 from tfr.reassignment import chromagram, shift_right, arg, reassigned_spectrogram
 from tfr.tuning import Tuning
 

@@ -1,6 +1,6 @@
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from .analysis import SignalFrames
+from .signal import SignalFrames
 from .reassignment import chromagram
 
 

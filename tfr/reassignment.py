@@ -4,7 +4,7 @@ import scipy
 
 from .spectrogram import db_scale, positive_freq_magnitudes, \
     select_positive_freq_fft, fftfreqs, normalized_window
-from .analysis import SignalFrames
+from .signal import SignalFrames
 from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
 

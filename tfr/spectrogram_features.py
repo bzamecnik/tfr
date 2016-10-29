@@ -6,7 +6,7 @@ suitable as features for machine learning.
 import numpy as np
 import os
 
-from .analysis import SignalFrames
+from .signal import SignalFrames
 from .reassignment import reassigned_spectrogram, chromagram
 
 
