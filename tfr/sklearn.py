@@ -1,7 +1,6 @@
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from .analysis import SignalFrames
-from .spectrogram import create_window
 from .reassignment import chromagram
 
 
@@ -26,7 +25,6 @@ class ChromagramTransformer(BaseEstimator, TransformerMixin):
             self.sample_rate, mono_mix=True)
         X_chromagram = chromagram(
             signal_frames,
-            create_window,
             self.output_frame_size,
             to_log=True,
             bin_range=self.bin_range,

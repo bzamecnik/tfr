@@ -1,8 +1,9 @@
 import os
 import numpy as np
+import scipy
 
-from .spectrogram import db_scale, positive_freq_magnitudes, create_window, \
-    select_positive_freq_fft, fftfreqs
+from .spectrogram import db_scale, positive_freq_magnitudes, \
+    select_positive_freq_fft, fftfreqs, normalized_window
 from .analysis import SignalFrames
 from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
@@ -12,15 +13,16 @@ class Spectrogram():
     Represents spectrogram information of a time-domain signal which can be used
     to compute various types of reassigned spectrograms, chromagrams, etc.
     """
-    def __init__(self, signal_frames, window, positive_only=True):
+    def __init__(self, signal_frames, window=scipy.hanning, positive_only=True):
         """
         :param signal_frames: signal represented as SignalFrames instance
-        :param window_func: STFT window function - produces 1D normalized window
+        :param window: STFT window function - produces 1D window which will
+        be normalized
         """
         self.signal_frames = signal_frames
 
         x_frames = signal_frames.frames
-        w = window(signal_frames.frame_size)
+        w = normalized_window(window(signal_frames.frame_size))
 
         # complex spectra of windowed blocks of signal - STFT
         self.X_complex = np.fft.fft(x_frames * w)
@@ -195,7 +197,7 @@ def process_spectrogram(filename, frame_size, hop_size, output_frame_size):
     """
     signal_frames = SignalFrames(filename, frame_size, hop_size, mono_mix=True)
 
-    spectrogram = Spectrogram(signal_frames, window=create_window)
+    spectrogram = Spectrogram(signal_frames)
 
     image_filename = os.path.basename(filename).replace('.wav', '')
 
@@ -256,7 +258,7 @@ def process_spectrogram(filename, frame_size, hop_size, output_frame_size):
         reassign_time=False, reassign_frequency=False)
     save_raw_spectrogram_bitmap(image_filename + '_chromagram_no.png', X_chromagram)
 
-def reassigned_spectrogram(signal_frames, window, output_frame_size, to_log=True,
+def reassigned_spectrogram(signal_frames, output_frame_size, to_log=True,
     reassign_time=True, reassign_frequency=True):
     """
     From frames of audio signal it computes the frequency reassigned spectrogram
@@ -264,18 +266,18 @@ def reassigned_spectrogram(signal_frames, window, output_frame_size, to_log=True
 
     Only the real half of spectrum is given.
     """
-    return Spectrogram(signal_frames, window).reassigned(
+    return Spectrogram(signal_frames).reassigned(
         output_frame_size,
         transform_freqs_spectrogram(),
         reassign_time=reassign_time, reassign_frequency=reassign_frequency)
 
 # [-48,67) -> [~27.5, 21096.2) Hz
-def chromagram(signal_frames, window, output_frame_size, bin_range=(-48, 67), bin_division=1, to_log=True):
+def chromagram(signal_frames, output_frame_size, bin_range=(-48, 67), bin_division=1, to_log=True):
     """
     From frames of audio signal it computes the frequency reassigned spectrogram
     requantized to pitch bins (chromagram).
     """
-    return Spectrogram(signal_frames, window).reassigned(
+    return Spectrogram(signal_frames).reassigned(
         output_frame_size,
         transform_freqs_chromagram(signal_frames.sample_rate, bin_range=(-48, 67), bin_division=1))
 

@@ -72,12 +72,16 @@ def positive_freq_magnitudes(X):
 def create_window(size):
     """
     A normalized Hanning window of given size. Useful for analyzing sinusoidal
-    signals. It's normalized so that it has energy equal to its length, and mean
+    signals.
+    """
+    return normalized_window(scipy.hanning(size))
+
+def normalized_window(w):
+    """
+    Normalizes an FFT window so that it has energy equal to its length, and mean
     power equal to 1.0.
     """
-    w = scipy.hanning(size)
-    w = w / mean_power(w)
-    return w
+    return w / mean_power(w)
 
 def db_scale(magnitude_spectrum, normalized=False):
     """

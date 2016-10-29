@@ -6,23 +6,21 @@ suitable as features for machine learning.
 import numpy as np
 import os
 
-from .spectrogram import create_window
 from .analysis import SignalFrames
 from .reassignment import reassigned_spectrogram, chromagram
 
 
 def spectrogram_features(file_name, frame_size, hop_size, output_frame_size, spectrogram_type, to_log=True):
     signal_frames = SignalFrames(file_name, frame_size, hop_size, mono_mix=True)
-    window = create_window
 
     if spectrogram_type == 'stft':
-        X = reassigned_spectrogram(signal_frames, window, output_frame_size,
+        X = reassigned_spectrogram(signal_frames, output_frame_size,
             to_log=to_log, reassign_time=False, reassign_frequency=False)
     elif spectrogram_type == 'reassigned':
-        X = reassigned_spectrogram(signal_frames, window, output_frame_size,
+        X = reassigned_spectrogram(signal_frames, output_frame_size,
             to_log=to_log)
     elif spectrogram_type == 'chromagram':
-        X = chromagram(signal_frames, window, output_frame_size, to_log=to_log)
+        X = chromagram(signal_frames, output_frame_size, to_log=to_log)
     else:
         raise ValueError('unknown spectrogram type: %s' % spectrogram_type)
 
