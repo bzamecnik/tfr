@@ -34,7 +34,6 @@ pip install -e tfr
 ```
 from tfr.analysis import SignalFrames
 from tfr.reassignment import chromagram
-from tfr.spectrogram import create_window
 import soundfile as sf
 
 frame_size = 4096
@@ -48,7 +47,7 @@ signal_frames = SignalFrames('audio.flac', frame_size=frame_size, hop_size=2048)
 # output:
 #   - chromagram of shape (frame_count, bin_count)
 #   - values are log-magnitudes in dBFS [-120.0, bin_count]
-x_chromagram = chromagram(signal_frames, create_window,
+x_chromagram = chromagram(signal_frames,
   output_frame_size, to_log=True, bin_range=[-48, 67], bin_division=1)
 ```
 
