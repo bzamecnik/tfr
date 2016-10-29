@@ -97,8 +97,7 @@ class Spectrogram():
         X_y, output_bin_count, bin_range = transform.transform_freqs(X_y,
             self.signal_frames.sample_rate)
         frame_duration = frame_size / fs
-        # TODO: use self.signal_frames.duration
-        end_input_time = self.signal_frames.start_times[-1] + frame_duration
+        end_input_time = self.signal_frames.duration
         output_frame_count = (end_input_time * fs) // output_frame_size
         time_range = (0, output_frame_count * output_frame_size / fs)
 
