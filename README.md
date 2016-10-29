@@ -32,16 +32,15 @@ pip install -e tfr
 ### Extract a chromagram from an audio file
 
 ```
-from tfr.analysis import split_to_frames, to_mono
+from tfr.analysis import SignalFrames
 from tfr.reassignment import chromagram
 from tfr.spectrogram import create_window
 import soundfile as sf
 
-x, fs = sf.read('audio.flac')
 frame_size = 4096
 output_frame_size = 1024
 window = create_window(frame_size)
-x_frames, x_times = split_to_frames(to_mono(x), frame_size=frame_size, hop_size=2048, fs=fs)
+x_frames, x_times = SignalFrames('audio.flac', frame_size=frame_size, hop_size=2048)
 
 # input:
 #   - frames of mono audio signal normalized to [0.0, 1.0]
@@ -82,7 +81,7 @@ x, fs = sf.read('audio.flac')
 from tfr.analysis import to_mono
 from tfr.sklearn import ChromagramTransformer
 ct = ChromagramTransformer(sample_rate=fs)
-x_chromagram = ct.transform(to_mono(x))
+x_chromagram = ct.transform(x)
 
 # output:
 #  - shape: (frame_count, bin_count)

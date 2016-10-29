@@ -3,14 +3,16 @@ import math
 import scipy
 
 from .features import mean_power
-from .analysis import read_frames
+from .analysis import SignalFrames
 
 def spectrogram(filename, frame_size=2048, hop_size=512, to_log=True):
     """
     Computes an STFT magnitude power spectrogram from an audio file.
     Returns: spectrogram, audio_samples, frame_times
     """
-    x, times, fs = read_frames(filename, frame_size, hop_size, mono_mix=True)
+    signal_frames = SignalFrames(filename, frame_size, hop_size, mono_mix=True)
+    x = signal_frames.frames
+    times = signal_frames.start_times
     w = create_window(frame_size)
     X = stft_spectrogram(x, w, to_log)
     return X, x, times

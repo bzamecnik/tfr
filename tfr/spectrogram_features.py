@@ -7,12 +7,13 @@ import numpy as np
 import os
 
 from .spectrogram import create_window
-from .analysis import read_frames
+from .analysis import SignalFrames
 from .reassignment import reassigned_spectrogram, chromagram
 
 
 def spectrogram_features(file_name, frame_size, hop_size, output_frame_size, spectrogram_type, to_log=True):
-    x, times, fs = read_frames(file_name, frame_size, hop_size, mono_mix=True)
+    signal_frames = SignalFrames(file_name, frame_size, hop_size, mono_mix=True)
+    x, times, fs = signal_frames.frames, signal_frames.start_times, signal_frames.sample_rate
     w = create_window(frame_size)
 
     if spectrogram_type == 'stft':

@@ -2,40 +2,87 @@ import math
 import numpy as np
 import soundfile as sf
 
-def read_frames(filename, frame_size, hop_size=None, mono_mix=True):
-    song, fs = sf.read(filename)
-    if mono_mix:
-        song = to_mono(song)
-    x, times = split_to_frames(song, frame_size, hop_size=hop_size)
-    return x, times, fs
+class SignalFrames():
+    """
+    Represents frames of time-domain signal of regular size with possible
+    overlap plus it's metadata.
 
-def split_to_frames(x, frame_size=1024, hop_size=None, fs=44100):
-    '''
-    Splits the input audio signal to frame of given size (in samples).
-    Start position of each frame is determined by given hop size.
-    The last frame is right zero-padded if needed.
-    input:
-    x - array-like representing the audio signal
-    '''
-    if hop_size is None:
-        hop_size = frame_size
-    frame_count = math.ceil(len(x) / hop_size)
-    def pad(x, size, value=0):
-        padding_size = size - len(x)
-        if padding_size:
-            x = np.pad(x, (0, padding_size), 'constant', constant_values=(0, 0))
-        return x
-    frames = np.vstack(
-        pad(x[start:start + frame_size], frame_size) \
-        for start in range(0, hop_size * frame_count, hop_size))
-    times = split_frame_times(len(x), fs, hop_size)
-    return frames, times
+    The signal can be read from an numpy array a file via the soundfile library.
+    The input array can be of shape `(samples,)` or `(samples, channels)`. By
+    default the signal is mixed to mono to shape `(samples,)`. This can be
+    disabled by specifying `mono_mix=False`.
 
-def split_frame_times(N, fs, hop_size):
-    return np.arange(0, N/fs, hop_size/fs)
+    It is split into frames of `frame_size`. In case `hop_size < frame_size` the
+    frames are overlapping. When the last frame is not fully covered by the
+    signal it's padded with zeros.
 
-def to_mono(samples):
-    if samples.ndim == 1:
-        return samples
-    else:
-        return samples.mean(axis=-1)
+    When reading signal from a file the sample rate can usually determined
+    automatically, otherwise you shoud provide `sample_rate`.
+
+    Attributes:
+    - `frames` - signal split to frame, shape `(frames, frame_size)`
+    - `frame_size`
+    - `hop_size`
+    - `length` - length of the source signal (in samples)
+    - `duration` - duration of the source signal (in seconds)
+    - `start_times` - array of start times of each frame (in seconds)
+
+    Example usage:
+
+    ```
+    signal_frames = SignalFrames('audio.flac', frame_size=4096, hop_size=1024)
+    spectrogram = np.fft.fft(signal_frames.frames * window)
+    ```
+
+    :param source: source of the time-domain signal - numpy array, file name,
+    file-like object
+    :param frame_size: size of each frame (in samples)
+    :param hop_size: hop between frame starts (in samples)
+    :param sample_rate: sample rate (required when source is an array)
+    :mono_mix: indicates that multi-channel signal should be mixed to mono
+    (mean of all channels)
+    """
+    def __init__(self, source, frame_size, hop_size, sample_rate=None,
+        mono_mix=True):
+        if type(source) == np.ndarray:
+            signal = source
+            self.sample_rate = sample_rate
+        else:
+            signal, self.sample_rate = sf.read(source)
+
+        if mono_mix:
+            signal = self._to_mono(signal)
+
+        self.frames = self._split_to_frames(signal, frame_size, hop_size)
+        self.frame_size = frame_size
+        self.hop_size = hop_size
+        self.length = len(signal)
+        self.duration = self.length / self.sample_rate
+        self.start_times = np.arange(0, self.duration, self.hop_size / self.sample_rate)
+
+    def _split_to_frames(self, x, frame_size, hop_size):
+        """
+        Splits the input audio signal to frame of given size (in samples).
+        Start position of each frame is determined by given hop size.
+        The last frame is right zero-padded if needed.
+        input:
+        x - array-like representing the audio signal
+        """
+        if hop_size is None:
+            hop_size = frame_size
+        frame_count = math.ceil(len(x) / hop_size)
+        def pad(x, size, value=0):
+            padding_size = size - len(x)
+            if padding_size:
+                x = np.pad(x, (0, padding_size), 'constant', constant_values=(0, 0))
+            return x
+        frames = np.vstack(
+            pad(x[start:start + frame_size], frame_size) \
+            for start in range(0, hop_size * frame_count, hop_size))
+        return frames
+
+    def _to_mono(self, samples):
+        if samples.ndim == 1:
+            return samples
+        else:
+            return samples.mean(axis=-1)

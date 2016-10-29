@@ -1,6 +1,6 @@
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from .analysis import split_to_frames
+from .analysis import SignalFrames
 from .spectrogram import create_window
 from .reassignment import chromagram
 
@@ -24,12 +24,11 @@ class ChromagramTransformer(BaseEstimator, TransformerMixin):
         Input: X - mono audio clip - numpy array of shape (samples,)
         Output: X_chromagram - numpy array of shape (frames, bins)
         """
-        x_frames, X_times = split_to_frames(X,
-            self.frame_size, self.hop_size, self.sample_rate)
+        signal_frames = SignalFrames(X, self.frame_size, self.hop_size, mono_mix=True)
         X_chromagram = chromagram(
-            x_frames,
+            signal_frames.frames,
             self.window,
-            X_times,
+            signal_frames.start_times,
             self.sample_rate,
             self.frame_size,
             self.output_frame_size,

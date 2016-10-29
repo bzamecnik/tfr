@@ -3,7 +3,7 @@ import numpy as np
 
 from .spectrogram import db_scale, positive_freq_magnitudes, create_window, \
     select_positive_freq_fft, fftfreqs
-from .analysis import read_frames
+from .analysis import SignalFrames
 from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
 
@@ -192,7 +192,9 @@ def process_spectrogram(filename, frame_size, hop_size, output_frame_size):
     time-frequency reassigned) from an audio file and stores and image from each
     spectrogram into PNG file.
     """
-    x, times, fs = read_frames(filename, frame_size, hop_size, mono_mix=True)
+    signal_frames = SignalFrames(filename, frame_size, hop_size, mono_mix=True)
+
+    x, times, fs = signal_frames.frames, signal_frames.start_times, signal_frames.sample_rate
     w = create_window(frame_size)
     X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
 
