@@ -22,7 +22,8 @@ class ChromagramTransformer(BaseEstimator, TransformerMixin):
         Input: X - mono audio clip - numpy array of shape (samples,)
         Output: X_chromagram - numpy array of shape (frames, bins)
         """
-        signal_frames = SignalFrames(X, self.frame_size, self.hop_size, mono_mix=True)
+        signal_frames = SignalFrames(X, self.frame_size, self.hop_size,
+            self.sample_rate, mono_mix=True)
         X_chromagram = chromagram(
             signal_frames,
             create_window,
