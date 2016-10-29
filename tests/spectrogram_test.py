@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from tfr.analysis import read_blocks
+from tfr.analysis import read_frames
 from tfr.features import energy, mean_power
 from tfr.spectrogram import create_window, stft_spectrogram
 
@@ -16,11 +16,11 @@ def test_window_should_be_normalized():
         yield assert_ok, size
 
 def test_spectrogram_db_magnituds_should_be_in_proper_range():
-    block_size = 4096
+    frame_size = 4096
     audio_file = os.path.join(DATA_DIR, 'she_brings_to_me.wav')
-    x_blocks, x_times, fs = read_blocks(audio_file, block_size=block_size)
-    w = create_window(block_size)
-    X = stft_spectrogram(x_blocks, w, to_log=True)
+    x_frames, x_times, fs = read_frames(audio_file, frame_size=frame_size)
+    w = create_window(frame_size)
+    X = stft_spectrogram(x_frames, w, to_log=True)
     assert np.all(X >= -120), 'min value: %f should be >= -120' % X.min()
     assert np.all(X <= 0), 'max value: %f should be <= 0' % X.max()
 

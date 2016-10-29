@@ -1,37 +1,37 @@
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from .analysis import split_to_blocks
+from .analysis import split_to_frames
 from .spectrogram import create_window
 from .reassignment import chromagram
 
 
 class ChromagramTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, sample_rate=44100, block_size=4096, hop_size=2048,
+    def __init__(self, sample_rate=44100, frame_size=4096, hop_size=2048,
         bin_range=[-48, 67], bin_division=1):
         self.sample_rate = sample_rate
-        self.block_size = block_size
+        self.frame_size = frame_size
         self.hop_size = hop_size
         # TODO: make this configurable
         self.output_frame_size = hop_size
         self.bin_range = bin_range
         self.bin_division = bin_division
 
-        self.window = create_window(block_size)
+        self.window = create_window(frame_size)
 
     def transform(self, X, **transform_params):
         """
         Transforms audio clip X into a normalized chromagram.
         Input: X - mono audio clip - numpy array of shape (samples,)
-        Output: X_chromagram - numpy array of shape (blocks, bins)
+        Output: X_chromagram - numpy array of shape (frames, bins)
         """
-        X_blocks, X_times = split_to_blocks(X,
-            self.block_size, self.hop_size, self.sample_rate)
+        x_frames, X_times = split_to_frames(X,
+            self.frame_size, self.hop_size, self.sample_rate)
         X_chromagram = chromagram(
-            X_blocks,
+            x_frames,
             self.window,
             X_times,
             self.sample_rate,
-            self.block_size,
+            self.frame_size,
             self.output_frame_size,
             to_log=True,
             bin_range=self.bin_range,

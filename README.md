@@ -32,25 +32,25 @@ pip install -e tfr
 ### Extract a chromagram from an audio file
 
 ```
-from tfr.analysis import split_to_blocks, to_mono
+from tfr.analysis import split_to_frames, to_mono
 from tfr.reassignment import chromagram
 from tfr.spectrogram import create_window
 import soundfile as sf
 
 x, fs = sf.read('audio.flac')
-block_size = 4096
+frame_size = 4096
 output_frame_size = 1024
-window = create_window(block_size)
-x_blocks, x_times = split_to_blocks(to_mono(x), block_size=block_size, hop_size=2048, fs=fs)
+window = create_window(frame_size)
+x_frames, x_times = split_to_frames(to_mono(x), frame_size=frame_size, hop_size=2048, fs=fs)
 
 # input:
-#   - blocks of mono audio signal normalized to [0.0, 1.0]
-#   - shape: (block_count, block_size)
+#   - frames of mono audio signal normalized to [0.0, 1.0]
+#   - shape: (frame_count, frame_size)
 #   - bin_range is in pitch bins where 0 = 440 Hz (A4)
 # output:
-#   - chromagram of shape (block_count, bin_count)
+#   - chromagram of shape (frame_count, bin_count)
 #   - values are log-magnitudes in dBFS [-120.0, bin_count]
-x_chromagram = chromagram(x_blocks, window, x_times, block_size,
+x_chromagram = chromagram(x_frames, window, x_times, frame_size,
   output_frame_size, fs=fs, to_log=True, bin_range=[-48, 67], bin_division=1)
 ```
 
@@ -85,7 +85,7 @@ ct = ChromagramTransformer(sample_rate=fs)
 x_chromagram = ct.transform(to_mono(x))
 
 # output:
-#  - shape: (block_count, bin_count)
+#  - shape: (frame_count, bin_count)
 #   - values in dBFB normalized to [0.0, 1.0]
 ```
 

@@ -3,25 +3,25 @@ import math
 import scipy
 
 from .features import mean_power
-from .analysis import read_blocks
+from .analysis import read_frames
 
-def spectrogram(filename, block_size=2048, hop_size=512, to_log=True):
+def spectrogram(filename, frame_size=2048, hop_size=512, to_log=True):
     """
     Computes an STFT magnitude power spectrogram from an audio file.
-    Returns: spectrogram, audio_samples, block_times
+    Returns: spectrogram, audio_samples, frame_times
     """
-    x, times, fs = read_blocks(filename, block_size, hop_size, mono_mix=True)
-    w = create_window(block_size)
+    x, times, fs = read_frames(filename, frame_size, hop_size, mono_mix=True)
+    w = create_window(frame_size)
     X = stft_spectrogram(x, w, to_log)
     return X, x, times
 
 def stft_spectrogram(x, w, to_log):
     """
     Computes an STFT magnitude power spectrogram from an array of samples
-    already cut to blocks.
+    already cut to frames.
     Input:
-    - x - time-domain samples - array of shape (blocks, block_size)
-    - w - window - array of shape (block_size)
+    - x - time-domain samples - array of shape (frames, frame_size)
+    - w - window - array of shape (frame_size)
     - to_log - indicates whether to scale the
     Output: spectrogram
     """
@@ -97,12 +97,12 @@ def energy_weighted_spectrum(x):
     # np.allclose(energy(abs(X[:N//2]) / math.sqrt(N//2)), energy(x))
     return abs(X) / math.sqrt(N)
 
-def fftfreqs(block_size, fs):
+def fftfreqs(frame_size, fs):
     """
     Positive FFT frequencies from DC (incl.) until Nyquist (excl.).
     The size of half of the FTT size.
     """
-    return np.fft.fftfreq(block_size, 1/fs)[:block_size // 2]
+    return np.fft.fftfreq(frame_size, 1/fs)[:frame_size // 2]
 
 def inverse_spectrum(spectrum, window):
     '''
