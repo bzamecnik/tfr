@@ -122,33 +122,16 @@ def transform_freqs_chromagram(fs, bin_range=(-48, 67), bin_division=1):
         return X_y, output_bin_count, bin_range
     return transform
 
-def requantize_tf_spectrogram_common(X_time, X_y, times, frame_size,
-    output_frame_size, output_bin_count, bin_range, fs, weights=None):
-    """
-    Common code for spectrogram requantized both in frequency and time.
-
-    Note it is quantized into non-overlapping output time frames which may be
-    of a different size than input time frames.
-    """
-    frame_duration = frame_size / fs
-    end_input_time = times[-1] + frame_duration
-    output_frame_count = (end_input_time * fs) // output_frame_size
-    time_range = (0, output_frame_count * output_frame_size / fs)
-
-    output_shape = (output_frame_count, output_bin_count)
-    counts, x_edges, y_edges = np.histogram2d(
-        X_time.flatten(), X_y.flatten(),
-        weights=weights.flatten() if weights is not None else None,
-        range=(time_range, bin_range),
-        bins=output_shape)
-
-    return counts, x_edges, y_edges
-
 def reassigned_tf_spectrogram(
     x, w, times, frame_size,
     output_frame_size, fs,
     transform_freqs_func,
     reassign_time=True, reassign_frequency=True):
+    """
+    Common code for spectrogram requantized both in frequency and time.
+
+    This method is useful if you'd like to compute the low-level spectra once.
+    """
     X, X_mag, X_cross_time, X_cross_freq, X_inst_freqs, X_group_delays = compute_spectra(x, w)
     return reassigned_tf_spectrogram_from_spectra(
         X_group_delays, X_inst_freqs, times, frame_size,
@@ -161,6 +144,14 @@ def reassigned_tf_spectrogram_from_spectra(
     output_frame_size, fs, X_mag,
     transform_freqs_func,
     reassign_time=True, reassign_frequency=True):
+    """
+    Common code for spectrogram requantized both in frequency and time.
+
+    Note it is quantized into non-overlapping output time frames which may be
+    of a different size than input time frames.
+
+    This method is useful if you'd like to reuse computed low-level spectra.
+    """
 
     frame_duration = frame_size / fs
     frame_center_time = frame_duration / 2
@@ -179,8 +170,17 @@ def reassigned_tf_spectrogram_from_spectra(
         X_y = np.tile(fftfreqs(frame_size, fs)/fs, (X_inst_freqs.shape[0], 1))
 
     X_y, output_bin_count, bin_range = transform_freqs_func(X_y)
-    X_spectrogram = requantize_tf_spectrogram_common(X_time, X_y, times, frame_size,
-        output_frame_size, output_bin_count, bin_range, fs, X_mag)[0]
+    frame_duration = frame_size / fs
+    end_input_time = times[-1] + frame_duration
+    output_frame_count = (end_input_time * fs) // output_frame_size
+    time_range = (0, output_frame_count * output_frame_size / fs)
+
+    output_shape = (output_frame_count, output_bin_count)
+    X_spectrogram, x_edges, y_edges = np.histogram2d(
+        X_time.flatten(), X_y.flatten(),
+        weights=X_mag.flatten(),
+        range=(time_range, bin_range),
+        bins=output_shape)
 
     X_spectrogram = db_scale(X_spectrogram ** 2)
 
