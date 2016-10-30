@@ -1,7 +1,7 @@
 import numpy as np
 import os
 from tfr import SignalFrames
-from tfr.features import energy, mean_power
+from tfr.signal import energy, mean_power
 from tfr.spectrogram import create_window, stft_spectrogram
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
