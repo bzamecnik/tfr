@@ -20,7 +20,7 @@ class LinearTransform():
         return X_y, output_bin_count, self.bin_range
 
 
-class ChromaTransform():
+class PitchTransform():
     """
     Perform the proper quantization to pitch bins according to possible
     subdivision before the actual histogram computation. Still we need to
@@ -49,7 +49,7 @@ class ChromaTransform():
 class Spectrogram():
     """
     Represents spectrogram information of a time-domain signal which can be used
-    to compute various types of reassigned spectrograms, chromagrams, etc.
+    to compute various types of reassigned spectrograms, pitchgrams, etc.
     """
     def __init__(self, signal_frames, window=scipy.hanning, positive_only=True):
         """
@@ -249,31 +249,31 @@ def process_spectrogram(filename, frame_size, hop_size, output_frame_size):
         reassign_time=True, reassign_frequency=True)
     save_raw_spectrogram_bitmap(image_filename + '_reassigned_tf.png', X_reassigned_tf)
 
-    chroma_transform = ChromaTransform(bin_range=(-48, 67), bin_division=1)
+    pitch_transform = PitchTransform(bin_range=(-48, 67), bin_division=1)
 
-    # TF-reassigned chromagram
-    X_chromagram_tf = spectrogram.reassigned(output_frame_size,
-        chroma_transform,
+    # TF-reassigned pitchgram
+    X_pitchgram_tf = spectrogram.reassigned(output_frame_size,
+        pitch_transform,
         reassign_time=True, reassign_frequency=True)
-    save_raw_spectrogram_bitmap(image_filename + '_chromagram_tf.png', X_chromagram_tf)
+    save_raw_spectrogram_bitmap(image_filename + '_pitchgram_tf.png', X_pitchgram_tf)
 
-    # T-reassigned chromagram
-    X_chromagram_t = spectrogram.reassigned(output_frame_size,
-        chroma_transform,
+    # T-reassigned pitchgram
+    X_pitchgram_t = spectrogram.reassigned(output_frame_size,
+        pitch_transform,
         reassign_time=True, reassign_frequency=False)
-    save_raw_spectrogram_bitmap(image_filename + '_chromagram_t.png', X_chromagram_t)
+    save_raw_spectrogram_bitmap(image_filename + '_pitchgram_t.png', X_pitchgram_t)
 
-    # F-reassigned chromagram
-    X_chromagram_t = spectrogram.reassigned(output_frame_size,
-        chroma_transform,
+    # F-reassigned pitchgram
+    X_pitchgram_t = spectrogram.reassigned(output_frame_size,
+        pitch_transform,
         reassign_time=False, reassign_frequency=True)
-    save_raw_spectrogram_bitmap(image_filename + '_chromagram_f.png', X_chromagram_t)
+    save_raw_spectrogram_bitmap(image_filename + '_pitchgram_f.png', X_pitchgram_t)
 
-    # non-reassigned chromagram
-    X_chromagram = spectrogram.reassigned(output_frame_size,
-        chroma_transform,
+    # non-reassigned pitchgram
+    X_pitchgram = spectrogram.reassigned(output_frame_size,
+        pitch_transform,
         reassign_time=False, reassign_frequency=False)
-    save_raw_spectrogram_bitmap(image_filename + '_chromagram_no.png', X_chromagram)
+    save_raw_spectrogram_bitmap(image_filename + '_pitchgram_no.png', X_pitchgram)
 
 def reassigned_spectrogram(signal_frames, output_frame_size=None, to_log=True,
     reassign_time=True, reassign_frequency=True):
@@ -288,13 +288,13 @@ def reassigned_spectrogram(signal_frames, output_frame_size=None, to_log=True,
         reassign_time, reassign_frequency, to_log)
 
 # [-48,67) -> [~27.5, 21096.2) Hz
-def chromagram(signal_frames, output_frame_size=None, bin_range=(-48, 67), bin_division=1, to_log=True):
+def pitchgram(signal_frames, output_frame_size=None, bin_range=(-48, 67), bin_division=1, to_log=True):
     """
     From frames of audio signal it computes the frequency reassigned spectrogram
-    requantized to pitch bins (chromagram).
+    requantized to pitch bins (pitchgram).
     """
     return Spectrogram(signal_frames).reassigned(
-        output_frame_size, ChromaTransform(bin_range, bin_division), to_log)
+        output_frame_size, PitchTransform(bin_range, bin_division), to_log)
 
 if __name__ == '__main__':
     import sys

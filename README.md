@@ -50,14 +50,14 @@ x = np.sin(2 * np.pi * 10 * np.linspace(0, 1, 1000))
 signal_frames = tfr.SignalFrames(x)
 ```
 
-### Minimal example - chromagram from audio file
+### Minimal example - pitchgram from audio file
 
 ```
 import tfr
-x_chromagram = tfr.chromagram(tfr.SignalFrames('audio.flac'))
+x_pitchgram = tfr.pitchgram(tfr.SignalFrames('audio.flac'))
 ```
 
-From audio frames it computes a reassigned chromagram of shape `(frame_count, bin_count)` with values being log-magnitudes in dBFS `[-120.0, 0.0]`. Sensible parameters are used by default, but you can change them if you wish.
+From audio frames it computes a reassigned pitchgram of shape `(frame_count, bin_count)` with values being log-magnitudes in dBFS `[-120.0, 0.0]`. Sensible parameters are used by default, but you can change them if you wish.
 
 ### Reassigned spectrogram
 
@@ -80,7 +80,7 @@ signal_frames = tfr.SignalFrames('audio.flac', frame_size=1024, hop_size=256)
 
 ### General spectrogram API
 
-The `chromagram` and `reassigned_spectrogram` functions are just syntax sugar for the `Spectrogram` class. You can use it directly to gain more control.
+The `pitchgram` and `reassigned_spectrogram` functions are just syntax sugar for the `Spectrogram` class. You can use it directly to gain more control.
 
 General usage:
 
@@ -125,14 +125,14 @@ Disable decibel transform of output values:
 x_spectrogram = tfr.Spectrogram(signal_frames).reassigned(to_log=False)
 ```
 
-Use some specific transformation of the output values. `LinearTransform` (default) is just for normal spectrogram, `ChromaTransform` is for chromagram. Or you can write your own.
+Use some specific transformation of the output values. `LinearTransform` (default) is just for normal spectrogram, `PitchTransform` is for pitchgram. Or you can write your own.
 
 ```
 x_spectrogram = tfr.Spectrogram(signal_frames).reassigned(transform=LinearTransform())
 ```
 
 ```
-x_chromagram = tfr.Spectrogram(signal_frames).reassigned(transform=ChromaTransform())
+x_pitchgram = tfr.Spectrogram(signal_frames).reassigned(transform=PitchTransform())
 ```
 
 ```
@@ -148,9 +148,9 @@ class LogTransform():
 x_log_spectrogram = tfr.Spectrogram(signal_frames).reassigned(transform=LogTransform())
 ```
 
-### Chromagram parameters
+### Pitchgram parameters
 
-In chromagram the frequencies are transformed into pitches in some tuning and then quantized to bins. You can specify the tuning range of pitch bins and their subdivision.
+In pitchgram the frequencies are transformed into pitches in some tuning and then quantized to bins. You can specify the tuning range of pitch bins and their subdivision.
 
 - `tuning` - instance of `Tuning` class, transforms between pitch and frequency
 - `bin_range` is in pitches where 0 = 440 Hz (A4), 12 is A5, -12 is A3, etc.
@@ -163,8 +163,8 @@ In chromagram the frequencies are transformed into pitches in some tuning and th
 python -m tfr.spectrogram_features audio.flac spectrogram.npz
 # reassigned STFT spectrogram
 python -m tfr.spectrogram_features audio.flac -t reassigned reassigned_spectrogram.npz
-# reassigned chromagram
-python -m tfr.spectrogram_features audio.flac -t chromagram chromagram.npz
+# reassigned pitchgram
+python -m tfr.spectrogram_features audio.flac -t pitchgram pitchgram.npz
 ```
 
 Look for other options:
@@ -175,16 +175,16 @@ python -m tfr.spectrogram_features --help
 
 ### scikit-learn transformer
 
-In order to extract chromagram features within a sklearn pipeline, we can use `ChromagramTransformer`:
+In order to extract pitchgram features within a sklearn pipeline, we can use `PitchgramTransformer`:
 
 ```
 import soundfile as sf
 x, fs = sf.read('audio.flac')
 
 from tfr.signal import to_mono
-from tfr.sklearn import ChromagramTransformer
-ct = ChromagramTransformer(sample_rate=fs)
-x_chromagram = ct.transform(x)
+from tfr.sklearn import PitchgramTransformer
+ct = PitchgramTransformer(sample_rate=fs)
+x_pitchgram = ct.transform(x)
 
 # output:
 #  - shape: (frame_count, bin_count)

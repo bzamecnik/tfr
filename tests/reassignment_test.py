@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-from tfr import SignalFrames, Tuning, chromagram, reassigned_spectrogram
+from tfr import SignalFrames, Tuning, pitchgram, reassigned_spectrogram
 from tfr.reassignment import shift_right, arg
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
@@ -9,7 +9,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 def test_shift_right():
     assert np.allclose(shift_right(np.array([[1, 2, 3]])), np.array([0, 1, 2]))
 
-def test_chromagram_on_single_tone_should_have_peak_at_that_tone():
+def test_pitchgram_on_single_tone_should_have_peak_at_that_tone():
     pitch = 12 + 7 # G5
     f = Tuning().pitch_to_freq(pitch)
     fs = 44100
@@ -19,13 +19,13 @@ def test_chromagram_on_single_tone_should_have_peak_at_that_tone():
     output_frame_size = hop_size
     signal_frames = SignalFrames(x, frame_size, hop_size, sample_rate=fs, mono_mix=True)
     bin_range = [-48, 67]
-    x_chromagram = chromagram(signal_frames,
+    x_pitchgram = pitchgram(signal_frames,
         output_frame_size, to_log=True, bin_range=bin_range, bin_division=1)
 
     max_bin_expected = pitch - bin_range[0]
-    max_bin_actual = x_chromagram.mean(axis=0).argmax()
+    max_bin_actual = x_pitchgram.mean(axis=0).argmax()
 
-    assert x_chromagram.shape == (21, 115), x_chromagram.shape
+    assert x_pitchgram.shape == (21, 115), x_pitchgram.shape
     assert max_bin_actual == max_bin_expected
 
 def test_arg():
@@ -46,13 +46,13 @@ def test_reassigned_spectrogram_values_should_be_in_proper_range():
     assert np.all(X_r >= -120), 'min value: %f should be >= -120' % X_r.min()
     assert np.all(X_r <= 0), 'max value: %f should be <= 0' % X_r.max()
 
-def test_reassigned_chromagram_values_should_be_in_proper_range():
+def test_reassigned_pitchgram_values_should_be_in_proper_range():
     frame_size = 4096
     hop_size = frame_size
     output_frame_size = 1024
     audio_file = os.path.join(DATA_DIR, 'she_brings_to_me.wav')
     signal_frames = SignalFrames(audio_file, frame_size, hop_size, mono_mix=True)
-    X_r = chromagram(signal_frames, output_frame_size, to_log=True)
+    X_r = pitchgram(signal_frames, output_frame_size, to_log=True)
     assert np.all(X_r >= -120), 'min value: %f should be >= -120' % X_r.min()
     assert np.all(X_r <= 0), 'max value: %f should be <= 0' % X_r.max()
 

@@ -1,5 +1,5 @@
-from .reassignment import Spectrogram, LinearTransform, ChromaTransform, \
-    reassigned_spectrogram, chromagram
+from .reassignment import Spectrogram, LinearTransform, PitchTransform, \
+    reassigned_spectrogram, pitchgram
 from .signal import SignalFrames
-from .sklearn import ChromagramTransformer
+from .sklearn import PitchgramTransformer
 from .tuning import Tuning, PitchQuantizer

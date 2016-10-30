@@ -11,7 +11,7 @@ from tfr.spectrogram_features import spectrogram_features
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
 def test_spectrograms():
-    for spectrogram_type in ['stft', 'reassigned', 'chromagram']:
+    for spectrogram_type in ['stft', 'reassigned', 'pitchgram']:
         yield assert_spectrogram_is_ok, spectrogram_type
 
 def assert_spectrogram_is_ok(spectrogram_type):

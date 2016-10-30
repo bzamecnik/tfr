@@ -7,7 +7,7 @@ import numpy as np
 import os
 
 from .signal import SignalFrames
-from .reassignment import reassigned_spectrogram, chromagram
+from .reassignment import reassigned_spectrogram, pitchgram
 
 
 def spectrogram_features(file_name, frame_size, hop_size, output_frame_size, spectrogram_type, to_log=True):
@@ -19,8 +19,8 @@ def spectrogram_features(file_name, frame_size, hop_size, output_frame_size, spe
     elif spectrogram_type == 'reassigned':
         X = reassigned_spectrogram(signal_frames, output_frame_size,
             to_log=to_log)
-    elif spectrogram_type == 'chromagram':
-        X = chromagram(signal_frames, output_frame_size, to_log=to_log)
+    elif spectrogram_type == 'pitchgram':
+        X = pitchgram(signal_frames, output_frame_size, to_log=to_log)
     else:
         raise ValueError('unknown spectrogram type: %s' % spectrogram_type)
 
@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument('-b', '--frame-size', type=int, default=2048, help='STFT frame size')
     parser.add_argument('-p', '--hop-size', type=int, default=512, help='STFT hop size')
     parser.add_argument('-o', '--output-frame-size', type=int, default=512, help='output frame size')
-    parser.add_argument('-t', '--type', default='stft', help='plain "stft", "reassigned" spectrogram or "chromagram"')
+    parser.add_argument('-t', '--type', default='stft', help='plain "stft", "reassigned" spectrogram or "pitchgram"')
 
     return parser.parse_args()
 
