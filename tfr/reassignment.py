@@ -3,7 +3,7 @@ import numpy as np
 import scipy
 
 from .spectrogram import db_scale, positive_freq_magnitudes, \
-    select_positive_freq_fft, fftfreqs, normalized_window
+    select_positive_freq_fft, fftfreqs, normalized_window, scale_magnitudes
 from .signal import SignalFrames
 from .tuning import PitchQuantizer, Tuning
 from .plots import save_raw_spectrogram_bitmap
@@ -102,7 +102,7 @@ class Spectrogram():
     def reassigned(
         self,
         output_frame_size=None, transform=LinearTransform(),
-        reassign_time=True, reassign_frequency=True, to_log=True):
+        reassign_time=True, reassign_frequency=True, magnitudes='power_db'):
         """
         Reassigned spectrogram requantized both in frequency and time.
 
@@ -149,11 +149,7 @@ class Spectrogram():
             range=(time_range, bin_range),
             bins=output_shape)
 
-        # power spectra
-        X_spectrogram = X_spectrogram ** 2
-        # dB scaling
-        if to_log:
-            X_spectrogram = db_scale(X_spectrogram)
+        X_spectrogram = scale_magnitudes(X_spectrogram, magnitudes)
 
         return X_spectrogram
 
@@ -275,7 +271,7 @@ def process_spectrogram(filename, frame_size, hop_size, output_frame_size):
         reassign_time=False, reassign_frequency=False)
     save_raw_spectrogram_bitmap(image_filename + '_pitchgram_no.png', X_pitchgram)
 
-def reassigned_spectrogram(signal_frames, output_frame_size=None, to_log=True,
+def reassigned_spectrogram(signal_frames, output_frame_size=None, magnitudes='power_db',
     reassign_time=True, reassign_frequency=True):
     """
     From frames of audio signal it computes the frequency reassigned spectrogram
@@ -285,16 +281,16 @@ def reassigned_spectrogram(signal_frames, output_frame_size=None, to_log=True,
     """
     return Spectrogram(signal_frames).reassigned(
         output_frame_size, LinearTransform(),
-        reassign_time, reassign_frequency, to_log)
+        reassign_time, reassign_frequency, magnitudes)
 
 # [-48,67) -> [~27.5, 21096.2) Hz
-def pitchgram(signal_frames, output_frame_size=None, bin_range=(-48, 67), bin_division=1, to_log=True):
+def pitchgram(signal_frames, output_frame_size=None, bin_range=(-48, 67), bin_division=1, magnitudes='power_db'):
     """
     From frames of audio signal it computes the frequency reassigned spectrogram
     requantized to pitch bins (pitchgram).
     """
     return Spectrogram(signal_frames).reassigned(
-        output_frame_size, PitchTransform(bin_range, bin_division), to_log)
+        output_frame_size, PitchTransform(bin_range, bin_division), magnitudes)
 
 if __name__ == '__main__':
     import sys

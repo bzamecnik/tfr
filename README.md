@@ -122,8 +122,16 @@ x_spectrogram_tf = s.reassigned()
 Disable decibel transform of output values:
 
 ```
-x_spectrogram = tfr.Spectrogram(signal_frames).reassigned(to_log=False)
+x_spectrogram = tfr.Spectrogram(signal_frames).reassigned(magnitudes='power')
 ```
+
+Magnitudes in the spectrogram can be transformed at the end in multiple ways given by the `magnitudes` parameter:
+
+- `linear` - energy spectrum
+- `power` - power spectrum
+- `power_db` - power spectrum in decibels, range: [-120, 0]
+- `power_db_normalized` - power spectrum in decibels normalized to range: [0, 1]
+  - this is useful as a feature
 
 Use some specific transformation of the output values. `LinearTransform` (default) is just for normal spectrogram, `PitchTransform` is for pitchgram. Or you can write your own.
 

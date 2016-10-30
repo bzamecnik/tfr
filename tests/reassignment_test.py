@@ -20,7 +20,7 @@ def test_pitchgram_on_single_tone_should_have_peak_at_that_tone():
     signal_frames = SignalFrames(x, frame_size, hop_size, sample_rate=fs, mono_mix=True)
     bin_range = [-48, 67]
     x_pitchgram = pitchgram(signal_frames,
-        output_frame_size, to_log=True, bin_range=bin_range, bin_division=1)
+        output_frame_size, magnitudes='power_db', bin_range=bin_range, bin_division=1)
 
     max_bin_expected = pitch - bin_range[0]
     max_bin_actual = x_pitchgram.mean(axis=0).argmax()
@@ -42,7 +42,7 @@ def test_reassigned_spectrogram_values_should_be_in_proper_range():
     output_frame_size = 1024
     audio_file = os.path.join(DATA_DIR, 'she_brings_to_me.wav')
     signal_frames = SignalFrames(audio_file, frame_size, hop_size, mono_mix=True)
-    X_r = reassigned_spectrogram(signal_frames, output_frame_size, to_log=True)
+    X_r = reassigned_spectrogram(signal_frames, output_frame_size, magnitudes='power_db')
     assert np.all(X_r >= -120), 'min value: %f should be >= -120' % X_r.min()
     assert np.all(X_r <= 0), 'max value: %f should be <= 0' % X_r.max()
 
@@ -52,7 +52,7 @@ def test_reassigned_pitchgram_values_should_be_in_proper_range():
     output_frame_size = 1024
     audio_file = os.path.join(DATA_DIR, 'she_brings_to_me.wav')
     signal_frames = SignalFrames(audio_file, frame_size, hop_size, mono_mix=True)
-    X_r = pitchgram(signal_frames, output_frame_size, to_log=True)
+    X_r = pitchgram(signal_frames, output_frame_size, magnitudes='power_db')
     assert np.all(X_r >= -120), 'min value: %f should be >= -120' % X_r.min()
     assert np.all(X_r <= 0), 'max value: %f should be <= 0' % X_r.max()
 

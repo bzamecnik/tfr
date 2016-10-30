@@ -5,7 +5,7 @@ import scipy
 from .signal import mean_power
 from .signal import SignalFrames
 
-def spectrogram(filename, frame_size=2048, hop_size=512, to_log=True):
+def spectrogram(filename, frame_size=2048, hop_size=512, magnitudes='power_db'):
     """
     Computes an STFT magnitude power spectrogram from an audio file.
     Returns: spectrogram, audio_samples, frame_times
@@ -14,21 +14,21 @@ def spectrogram(filename, frame_size=2048, hop_size=512, to_log=True):
     x = signal_frames.frames
     times = signal_frames.start_times
     w = create_window(frame_size)
-    X = stft_spectrogram(x, w, to_log)
+    X = stft_spectrogram(x, w, magnitudes)
     return X, x, times
 
-def stft_spectrogram(x, w, to_log):
+def stft_spectrogram(x, w, magnitudes):
     """
     Computes an STFT magnitude power spectrogram from an array of samples
     already cut to frames.
     Input:
     - x - time-domain samples - array of shape (frames, frame_size)
     - w - window - array of shape (frame_size)
-    - to_log - indicates whether to scale the
+    - magnitudes - indicates whether to scale the
     Output: spectrogram
     """
     X = magnitude_spectrum(x * w) ** 2
-    if to_log:
+    if magnitudes:
         X = db_scale(X)
     return X
 
@@ -94,6 +94,18 @@ def db_scale(magnitude_spectrum, normalized=False):
     if normalized:
         scaled = (scaled / 120) + 1
     return scaled
+
+def scale_magnitudes(X_mag, transform):
+    if transform == 'linear':
+        return X_mag
+    elif transform == 'power':
+        return X_mag ** 2
+    elif transform == 'power_db':
+        return db_scale(X_mag ** 2)
+    elif transform == 'power_db_normalized':
+        return db_scale(X_mag ** 2, normalized=True)
+    else:
+        raise ValueError('Unknown magnitude scaling transform ' + transform)
 
 # -- extras --
 

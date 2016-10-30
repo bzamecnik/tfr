@@ -10,24 +10,24 @@ from .signal import SignalFrames
 from .reassignment import reassigned_spectrogram, pitchgram
 
 
-def spectrogram_features(file_name, frame_size, hop_size, output_frame_size, spectrogram_type, to_log=True):
+def spectrogram_features(file_name, frame_size, hop_size, output_frame_size, spectrogram_type, magnitudes='power_db'):
     signal_frames = SignalFrames(file_name, frame_size, hop_size, mono_mix=True)
 
     if spectrogram_type == 'stft':
         X = reassigned_spectrogram(signal_frames, output_frame_size,
-            to_log=to_log, reassign_time=False, reassign_frequency=False)
+            magnitudes=magnitudes, reassign_time=False, reassign_frequency=False)
     elif spectrogram_type == 'reassigned':
         X = reassigned_spectrogram(signal_frames, output_frame_size,
-            to_log=to_log)
+            magnitudes=magnitudes)
     elif spectrogram_type == 'pitchgram':
-        X = pitchgram(signal_frames, output_frame_size, to_log=to_log)
+        X = pitchgram(signal_frames, output_frame_size, magnitudes=magnitudes)
     else:
         raise ValueError('unknown spectrogram type: %s' % spectrogram_type)
 
     return X
 
-def spectrogram_features_to_file(input_filename, output_filename, frame_size, hop_size, spectrogram_type, to_log=True):
-    X = spectrogram_features(input_filename, frame_size, hop_size, spectrogram_type, to_log)
+def spectrogram_features_to_file(input_filename, output_filename, frame_size, hop_size, spectrogram_type, magnitudes='power_db'):
+    X = spectrogram_features(input_filename, frame_size, hop_size, spectrogram_type, magnitudes)
     np.savez_compressed(output_filename, X)
     # scipy.misc.imsave(output_filename.replace('.npz', '.png'), X.T[::-1])
 

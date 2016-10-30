@@ -26,11 +26,9 @@ class PitchgramTransformer(BaseEstimator, TransformerMixin):
         X_pitchgram = pitchgram(
             signal_frames,
             self.output_frame_size,
-            to_log=True,
+            magnitudes='power_db_normalized',
             bin_range=self.bin_range,
             bin_division=self.bin_division)
-        # map from raw dB [-120.0, 0] to [0.0, 1.0]
-        X_pitchgram = (X_pitchgram / 120) + 1
         return X_pitchgram
 
     def fit(self, X, y=None, **fit_params):
