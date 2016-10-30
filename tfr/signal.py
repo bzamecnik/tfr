@@ -42,7 +42,7 @@ class SignalFrames():
     :mono_mix: indicates that multi-channel signal should be mixed to mono
     (mean of all channels)
     """
-    def __init__(self, source, frame_size, hop_size, sample_rate=None,
+    def __init__(self, source, frame_size=4096, hop_size=2048, sample_rate=None,
         mono_mix=True):
         if type(source) == np.ndarray:
             signal = source
