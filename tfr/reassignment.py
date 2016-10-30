@@ -30,13 +30,14 @@ class ChromaTransform():
     values to the lower bin edge. The epsilon is there to prevent log of 0
     in the pitch to frequency transformation.
     """
-    def __init__(self, bin_range=(-48, 67), bin_division=1):
+    def __init__(self, bin_range=(-48, 67), bin_division=1, tuning=Tuning()):
+        self.tuning = tuning
         self.bin_range = bin_range
         self.bin_division = bin_division
 
     def transform_freqs(self, X_inst_freqs, sample_rate):
         quantization_border = 1 / (2 * self.bin_division)
-        pitch_quantizer = PitchQuantizer(tuning, bin_division=self.bin_division)
+        pitch_quantizer = PitchQuantizer(self.tuning, bin_division=self.bin_division)
         eps = np.finfo(np.float32).eps
         # TODO: is it possible to quantize using relative freqs to avoid
         # dependency on the fs parameter?
