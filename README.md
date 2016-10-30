@@ -29,25 +29,132 @@ pip install -e tfr
 
 ## Usage
 
-### Extract a chromagram from an audio file
+### Split audio signal to frames
+
+You can read time-domain signal from an audio file (using the `soundfile` library) and split it into frames for spectral processing.
 
 ```
-from tfr import chromagram, SignalFrames
-
-frame_size = 4096
-output_frame_size = 1024
-signal_frames = SignalFrames('audio.flac', frame_size=frame_size, hop_size=2048)
-
-# input:
-#   - frames of mono audio signal normalized to [0.0, 1.0]
-#   - shape: (frame_count, frame_size)
-#   - bin_range is in pitch bins where 0 = 440 Hz (A4)
-# output:
-#   - chromagram of shape (frame_count, bin_count)
-#   - values are log-magnitudes in dBFS [-120.0, bin_count]
-x_chromagram = chromagram(signal_frames,
-  output_frame_size, to_log=True, bin_range=[-48, 67], bin_division=1)
+import tfr
+signal_frames = tfr.SignalFrames('audio.flac')
 ```
+
+`SignalFrames` instance contains the signal split into frames and some metadata useful for further processing.
+
+The signal values are normalized to [0.0, 1.0] and the channels are converted to mono.
+
+It is possible to provide the signal a numpy array as well.
+
+```
+import tfr
+x = np.sin(2 * np.pi * 10 * np.linspace(0, 1, 1000))
+signal_frames = tfr.SignalFrames(x)
+```
+
+### Minimal example - chromagram from audio file
+
+```
+import tfr
+x_chromagram = tfr.chromagram(tfr.SignalFrames('audio.flac'))
+```
+
+From audio frames it computes a reassigned chromagram of shape `(frame_count, bin_count)` with values being log-magnitudes in dBFS `[-120.0, 0.0]`. Sensible parameters are used by default, but you can change them if you wish.
+
+### Reassigned spectrogram
+
+Like normal one but sharper and requantized.
+
+```
+import tfr
+x_spectrogram = tfr.reassigned_spectrogram(tfr.SignalFrames('audio.flac'))
+```
+
+### Signal frames with specific parameters
+
+- `frame_size` - affects the FFT size - trade-off between frequency and time resolution, good to use powers of two, eg. 4096
+- `hop_size` - affects the overlap between frames since a window edges fall to zero, eg. half of frame_size (2048)
+
+```
+import tfr
+signal_frames = tfr.SignalFrames('audio.flac', frame_size=1024, hop_size=256)
+```
+
+### General spectrogram API
+
+The `chromagram` and `reassigned_spectrogram` functions are just syntax sugar for the `Spectrogram` class. You can use it directly to gain more control.
+
+General usage:
+
+```
+x_spectrogram = tfr.Spectrogram(signal_frames).reassigned()
+```
+
+From one Spectrogram instance you can efficiently compute reassigned spectrograms with various parameters.
+
+```
+s = tfr.Spectrogram(signal_frames)
+x_spectrogram_tf = s.reassigned(output_frame_size=4096)
+x_spectrogram_f = s.reassigned(output_frame_size=512)
+```
+
+Different window function (by default we use Hann window):
+
+```
+import scipy
+x_spectrogram = tfr.Spectrogram(signal_frames, window=scipy.blackman).reassigned()
+```
+
+Different output frame size (by default we make it the same as input hop size):
+
+```
+x_spectrogram = tfr.Spectrogram(signal_frames).reassigned(output_frame_size=512)
+```
+
+Disable reassignment of time and frequency separately:
+
+```
+s = tfr.Spectrogram(signal_frames)
+x_spectrogram = s.reassigned(reassign_time=False, reassign_frequency=False)
+x_spectrogram_t = s.reassigned(reassign_frequency=False)
+x_spectrogram_f = s.reassigned(reassign_time=False)
+x_spectrogram_tf = s.reassigned()
+```
+
+Disable decibel transform of output values:
+
+```
+x_spectrogram = tfr.Spectrogram(signal_frames).reassigned(to_log=False)
+```
+
+Use some specific transformation of the output values. `LinearTransform` (default) is just for normal spectrogram, `ChromaTransform` is for chromagram. Or you can write your own.
+
+```
+x_spectrogram = tfr.Spectrogram(signal_frames).reassigned(transform=LinearTransform())
+```
+
+```
+x_chromagram = tfr.Spectrogram(signal_frames).reassigned(transform=ChromaTransform())
+```
+
+```
+class LogTransform():
+  def __init__(self, bin_count=100)
+    self.bin_count = bin_count
+
+  def transform_freqs(self, X_inst_freqs, sample_rate):
+      X_y = np.log10(np.maximum(sample_rate * X_inst_freqs, eps))
+      bin_range = (0, np.log10(sample_rate))
+      return X_y, self.bin_count, bin_range
+
+x_log_spectrogram = tfr.Spectrogram(signal_frames).reassigned(transform=LogTransform())
+```
+
+### Chromagram parameters
+
+In chromagram the frequencies are transformed into pitches in some tuning and then quantized to bins. You can specify the tuning range of pitch bins and their subdivision.
+
+- `tuning` - instance of `Tuning` class, transforms between pitch and frequency
+- `bin_range` is in pitches where 0 = 440 Hz (A4), 12 is A5, -12 is A3, etc.
+- `bin_division` - bins per each pitch
 
 ### Extract features via CLI
 
