@@ -1,6 +1,6 @@
 import numpy as np
 import os
-from tfr.signal import SignalFrames
+from tfr import SignalFrames
 from tfr.features import energy, mean_power
 from tfr.spectrogram import create_window, stft_spectrogram
 

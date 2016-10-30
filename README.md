@@ -32,9 +32,7 @@ pip install -e tfr
 ### Extract a chromagram from an audio file
 
 ```
-from tfr.analysis import SignalFrames
-from tfr.reassignment import chromagram
-import soundfile as sf
+from tfr import chromagram, SignalFrames
 
 frame_size = 4096
 output_frame_size = 1024
@@ -76,7 +74,7 @@ In order to extract chromagram features within a sklearn pipeline, we can use `C
 import soundfile as sf
 x, fs = sf.read('audio.flac')
 
-from tfr.analysis import to_mono
+from tfr.signal import to_mono
 from tfr.sklearn import ChromagramTransformer
 ct = ChromagramTransformer(sample_rate=fs)
 x_chromagram = ct.transform(x)

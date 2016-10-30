@@ -1,4 +1,4 @@
-from tfr.tuning import Tuning
+from tfr import Tuning
 
 
 def test_pitch_to_relative_freq():

@@ -1,9 +1,8 @@
 import numpy as np
 import os
 
-from tfr.signal import SignalFrames
-from tfr.reassignment import chromagram, shift_right, arg, reassigned_spectrogram
-from tfr.tuning import Tuning
+from tfr import SignalFrames, Tuning, chromagram, reassigned_spectrogram
+from tfr.reassignment import shift_right, arg
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
