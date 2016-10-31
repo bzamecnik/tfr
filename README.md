@@ -212,6 +212,10 @@ Currently it's alpha. I'm happy to extract it from some other project into a sep
 - Author: Bohumír Zámečník ([@bzamecnik](http://twitter.com/bzamecnik))
 - License: MIT
 
+### Support the project
+
+Need some consulting or coding work regarding audio processing, machine learning or big data? Drop me a message via [email](mailto:bohumir.zamecnik@gmail.com?subject=Work+inquiry+-+based+on+tfr) or [LinkedIn](https://www.linkedin.com/in/bohumirzamecnik). Or just say hello :).
+
 ## Literature
 
 - [A Unified Theory of Time-Frequency Reassignment](https://arxiv.org/abs/0903.3080) - Kelly R. Fitz, Sean A. Fulop, Digital Signal Processing 30 September 2005
