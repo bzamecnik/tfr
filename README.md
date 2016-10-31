@@ -6,7 +6,9 @@
 
 Spectral audio feature extraction using [time-frequency reassignment](https://en.wikipedia.org/wiki/Reassignment_method).
 
-![reassigned spectrogram illustration](reassigned-spectrogram.png)
+<!-- ![reassigned spectrogram illustration](reassigned-spectrogram.png) -->
+
+<img src="examples/multicomponent_animation.gif" alt="reassigned spectrogram illustration" width="516" height="436">
 
 Besides normals spectrograms it allows to compute reassigned spectrograms, transform them (eg. to log-frequency scale) and requantize them (eg. to musical pitch bins). This is useful to obtain good features for audio analysis or machine learning on audio data.
 
