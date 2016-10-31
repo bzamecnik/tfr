@@ -16,6 +16,8 @@ A reassigned spectrogram often provides more precise localization of energy in t
 
 This library supports reassignment in both frequency and time (both are optional). As well it does requantization from the input overlapping grid to an non-overlapping output grid.
 
+It is a good building block to compute [chromagram features](https://en.wikipedia.org/wiki/Chroma_feature) (aka pitch class profiles) where pitch is transformed into pitch class by ignoring the octave. See also [harmonic pitch class profiles](https://en.wikipedia.org/wiki/Harmonic_pitch_class_profiles).
+
 ## Installation
 
 ```
