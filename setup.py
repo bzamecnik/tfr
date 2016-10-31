@@ -15,6 +15,8 @@ setup(name='tfr',
          'scipy',
          'soundfile',
       ],
+      setup_requires=['setuptools-markdown'],
+      long_description_markdown_filename='README.md',
       # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[
           # How mature is this project? Common values are
