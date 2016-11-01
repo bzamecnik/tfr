@@ -281,7 +281,7 @@ def reassigned_spectrogram(signal_frames, output_frame_size=None, magnitudes='po
     """
     return Spectrogram(signal_frames).reassigned(
         output_frame_size, LinearTransform(),
-        reassign_time, reassign_frequency, magnitudes)
+        reassign_time, reassign_frequency, magnitudes=magnitudes)
 
 # [-48,67) -> [~27.5, 21096.2) Hz
 def pitchgram(signal_frames, output_frame_size=None, bin_range=(-48, 67), bin_division=1, magnitudes='power_db'):
@@ -290,7 +290,7 @@ def pitchgram(signal_frames, output_frame_size=None, bin_range=(-48, 67), bin_di
     requantized to pitch bins (pitchgram).
     """
     return Spectrogram(signal_frames).reassigned(
-        output_frame_size, PitchTransform(bin_range, bin_division), magnitudes)
+        output_frame_size, PitchTransform(bin_range, bin_division), magnitudes=magnitudes)
 
 if __name__ == '__main__':
     import sys
