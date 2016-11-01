@@ -34,13 +34,16 @@ def linear_chirp(t, start_freq, end_freq):
 def generate_example_sound(fs=44100, duration=3, carrier_freq=2000, mod_freq=1, mod_amp=1000, click_freq=10):
     t = sample_time(0, duration, fs)
 
+    component_count = 4
+    amplitude = 1 / component_count
+
     # FM component
-    x = freq_mod_sine(t, carrier_freq, mod_freq, mod_amp)
+    x = amplitude * freq_mod_sine(t, carrier_freq, mod_freq, mod_amp)
     # constant tone component
-    x += sinusoid(t, carrier_freq)
+    x += amplitude * sinusoid(t, carrier_freq)
     # linear chirps
-    x += linear_chirp(t, carrier_freq-mod_amp, carrier_freq+mod_amp)
-    x += linear_chirp(t, carrier_freq+mod_amp, carrier_freq-mod_amp)
+    x += amplitude * linear_chirp(t, carrier_freq-mod_amp, carrier_freq+mod_amp)
+    x += amplitude * linear_chirp(t, carrier_freq+mod_amp, carrier_freq-mod_amp)
     # sawtooth pulse-train component
     for i in range(duration*click_freq):
         idx = int(i * fs / click_freq)
