@@ -23,7 +23,7 @@ build:
 
 # PyPI production
 pypi_register:
-	twine dist/tfr-*.whl
+	twine register dist/tfr-*.whl
 
 publish:
 	twine upload dist/*
