@@ -29,6 +29,8 @@ class PitchTransform():
     from both sides towards the quantized value, while histogram2d floors the
     values to the lower bin edge. The epsilon is there to prevent log of 0
     in the pitch to frequency transformation.
+
+    bin_range: range of pitch bins (default: A0 27.5 Hz to E10 21096.16 Hz)
     """
     def __init__(self, bin_range=(-48, 67), bin_division=1, tuning=Tuning()):
         self.tuning = tuning
