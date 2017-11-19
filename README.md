@@ -6,11 +6,9 @@
 
 Spectral audio feature extraction using [time-frequency reassignment](https://en.wikipedia.org/wiki/Reassignment_method).
 
-<!-- ![reassigned spectrogram illustration](reassigned-spectrogram.png) -->
-
 <img src="examples/multicomponent_animation.gif" alt="reassigned spectrogram illustration" width="516" height="436">
 
-Besides normals spectrograms it allows to compute reassigned spectrograms, transform them (eg. to log-frequency scale) and requantize them (eg. to musical pitch bins). This is useful to obtain good features for audio analysis or machine learning on audio data.
+Besides normal spectrograms it allows to compute reassigned spectrograms, transform them (eg. to log-frequency scale) and requantize them (eg. to musical pitch bins). This is useful to obtain good features for audio analysis or machine learning on audio data.
 
 A reassigned spectrogram often provides more precise localization of energy in the time-frequency plane than a plain spectrogram. Roughly said in the reassignment method we use the phase (which is normally discarded) and move the samples on the time-frequency plane to a more suitable place computed from derivatives of the phase.
 
@@ -224,4 +222,4 @@ Need some consulting or coding work regarding audio processing, machine learning
 Technical Report, Cambridge University Engineering Dept.
 - [Improving the Readability of Time-Frequency and Time-Scale Representations by the Reassignment Method](http://perso.ens-lyon.fr/patrick.flandrin/IEEE_SP1995.pdf) - Francois Auger, Patrick Flandrin, IEEE Transactions on Signal Processing, vol. 43, no. 5, May 1995
 - [Time–frequency reassignment: from principles to algorithms](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.331.5416&rep=rep1&type=pdf) - P. Flandrin, F. Auger, E. Chassande-Mottin, CRC Press 2003
-- [Time-frequency toolbox for Matlab, user’s guide and reference guide](http://iut-saint- nazaire.univ-nantes.fr/~auger/tftb.html) - F.Auger, P.Flandrin, P.Goncalves, O.Lemoine
+- [Time-frequency toolbox for Matlab, user’s guide and reference guide](http://iut-saint-nazaire.univ-nantes.fr/~auger/tftb.html) - F.Auger, P.Flandrin, P.Goncalves, O.Lemoine
