@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='tfr',
-      version='0.2.2',
+      version='0.2.3',
       description='Time-frequency reassigned spectrograms',
       url='http://github.com/bzamecnik/tfr',
       author='Bohumir Zamecnik',
@@ -35,4 +35,9 @@ setup(name='tfr',
 
           'Operating System :: POSIX :: Linux',
           'Operating System :: MacOS :: MacOS X',
-      ])
+      ],
+      entry_points={
+          'console_scripts': [
+              'tfr = tfr.spectrogram_features:main'
+          ]
+      })

@@ -47,10 +47,13 @@ def parse_args():
 
     return parser.parse_args()
 
-if __name__ == '__main__':
+def main():
     args = parse_args()
 
     output = args.output_file if args.output_file else default_output_filename(args.input_file, args.type)
 
     spectrogram_features_to_file(args.input_file, output, args.frame_size,
         args.output_frame_size, args.hop_size, args.type)
+
+if __name__ == '__main__':
+    main()
