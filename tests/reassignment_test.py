@@ -25,7 +25,7 @@ def test_pitchgram_on_single_tone_should_have_peak_at_that_tone():
     max_bin_expected = pitch - bin_range[0]
     max_bin_actual = x_pitchgram.mean(axis=0).argmax()
 
-    assert x_pitchgram.shape == (21, 115), x_pitchgram.shape
+    assert x_pitchgram.shape == (22, 115), x_pitchgram.shape
     assert max_bin_actual == max_bin_expected
 
 def test_arg():

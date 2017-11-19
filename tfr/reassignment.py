@@ -1,4 +1,6 @@
+import math
 import os
+
 import numpy as np
 import scipy
 
@@ -141,7 +143,8 @@ class Spectrogram():
             self.signal_frames.sample_rate)
         frame_duration = frame_size / fs
         end_input_time = self.signal_frames.duration
-        output_frame_count = (end_input_time * fs) // output_frame_size
+        output_frame_count = int(math.ceil((end_input_time * fs) / output_frame_size))
+        print('output_frame_count', output_frame_count)
         time_range = (0, output_frame_count * output_frame_size / fs)
 
         output_shape = (output_frame_count, output_bin_count)
