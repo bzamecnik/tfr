@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='tfr',
-      version='0.2.3',
+      version='0.2.4',
       description='Time-frequency reassigned spectrograms',
       url='http://github.com/bzamecnik/tfr',
       author='Bohumir Zamecnik',
@@ -31,6 +31,7 @@ setup(name='tfr',
 
           'License :: OSI Approved :: MIT License',
 
+          'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 3',
 
           'Operating System :: POSIX :: Linux',

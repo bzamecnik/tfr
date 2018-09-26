@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from sklearn.base import BaseEstimator, TransformerMixin
 
 from .signal import SignalFrames

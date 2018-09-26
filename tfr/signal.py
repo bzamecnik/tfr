@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import math
 import numpy as np
 import soundfile as sf
@@ -70,7 +72,7 @@ class SignalFrames():
         """
         if hop_size is None:
             hop_size = frame_size
-        frame_count = math.ceil(len(x) / hop_size)
+        frame_count = int(math.ceil(len(x) / hop_size))
         def pad(x, size, value=0):
             padding_size = size - len(x)
             if padding_size:
@@ -78,7 +80,7 @@ class SignalFrames():
             return x
         frames = np.vstack(
             pad(x[start:start + frame_size], frame_size) \
-            for start in range(0, hop_size * frame_count, hop_size))
+            for start in np.arange(0, hop_size * frame_count, hop_size))
         return frames
 
     def _to_mono(self, samples):

@@ -3,6 +3,8 @@ The goal is to transform an audio signal into an STFT spectrogram in a form
 suitable as features for machine learning.
 """
 
+from __future__ import print_function, division
+
 import numpy as np
 import os
 

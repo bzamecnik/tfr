@@ -4,6 +4,8 @@ A regression test for computing three kinds of spectrogram.
 Just to ensure we didn't break anything.
 """
 
+from __future__ import print_function, division
+
 import numpy as np
 import os
 from tfr.spectrogram_features import spectrogram_features
